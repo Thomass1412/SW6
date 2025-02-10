@@ -1,8 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const admin = require("./firebase");
 
+const authRoutes = require("./routes/authRoutes");
+const shiftRoutes = require("./routes/shiftRoutes");
 
 const app = express();
 
@@ -10,31 +12,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Verify Firebase Token Middleware
-const verifyToken = async (req, res, next) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(403).send("No token provided");
-
-    try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = decodedToken;
-        next();
-    } catch (error) {
-        return res.status(401).send("Unauthorized");
-    }
-};
-
 // Routes
-app.get("/", (req, res) => {
-    res.send("API is running!");
-});
+app.use("/auth", authRoutes);
+app.use("/shifts", shiftRoutes);
 
-app.get("/protected", verifyToken, (req, res) => {
-    res.send(`Hello ${req.user.email}, you have access!`);
-});
-
-// Start Server
+// Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
