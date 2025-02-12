@@ -22,3 +22,20 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json(user);
 });
+
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (user && (await user.matchPassword(password))) {
+        res.json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            token: null
+        });
+    } else {
+        res.status(401);
+        throw new Error('Invalid email or password');
+    } 
+});
