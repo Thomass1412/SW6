@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const shiftRoutes = require("./routes/shiftRoutes");
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use("/", authRoutes);
+app.use("/users", userRoutes);
 app.use("/", shiftRoutes);
 
 // Start the Server

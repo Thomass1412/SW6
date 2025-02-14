@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
-const ShiftSchema = new mongoose.Schema({
-    employeeName: { type: String, required: true },
+const shiftSchema = new mongoose.Schema({
+    employee: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     date: { type: Date, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
-    status: { type: String, enum: ["Scheduled", "Completed", "Canceled"], default: "Scheduled" },
-});
+    location: { type: String, required: true },
+    status: { type: String, enum: ["scheduled", "completed", "canceled"], default: "scheduled" }
+}, { timestamps: true });
 
-module.exports = mongoose.model("Shift", ShiftSchema);
+module.exports = mongoose.model("Shift", shiftSchema);
