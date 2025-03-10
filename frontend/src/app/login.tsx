@@ -1,19 +1,34 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import { View, Text, TextInput, Button} from "react-native";
+import axios from "axios";
+import api from "../axiosConfig"; //relative path import
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    if (email === "test@example.com" && password === "password") {
-      router.push("./protected");
-    } else {
-      Alert.alert("Invalid Credentials", "Please try again.");
+  const handleLogin = async () => {
+    if (!email || !password) {
+        setError("Email and password are required");
+        return;
+    }
+    try {
+        const response = await api.post("/login", { email, password });
+
+        console.log(response.data.message);
+        router.push("/managerScreens/home"); 
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            setError(error.response.data.message);
+        } else {
+            setError("An unexpected error occurred");
+        }
     }
   };
+
 
   return (
     <View style={{ padding: 20 }}>

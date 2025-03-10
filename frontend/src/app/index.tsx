@@ -6,7 +6,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ padding: 20 }}>
-      <Text>Welcome to Home Screen!</Text>
+      <Text>Welcome 3to Home Screen!</Text>
       <Button title="Go to Login" onPress={() => router.push("./login")} />
     </View>
   );
