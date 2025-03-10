@@ -1,11 +1,31 @@
-const User = require("../models/user");
+const admin = require("../config/firebase"); // Firebase Admin SDK
+const User = require("../models/user"); // MongoDB User Model
 
-const checkAdmin = async (req, res, next) => {
-    const user = await User.findOne({ email: req.user.email });
-    if (!user || user.role !== "admin") {
-        return res.status(403).json({ message: "Access denied. Admins only." });
+// 🔐 Middleware: Verify Firebase Token & Check Admin Role
+const requireAdmin = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1]; // Extract token
+        if (!token) {
+            return res.status(401).json({ error: "Unauthorized - No token provided" });
+        }
+
+        // ✅ Verify Firebase ID Token
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const email = decodedToken.email;
+
+        // ✅ Find user in MongoDB
+        const user = await User.findOne({ email });
+        if (!user || user.role !== "Admin") {
+            return res.status(403).json({ error: "Forbidden - Admins only" });
+        }
+
+        // ✅ Attach user to request and proceed
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error("Authorization Error:", error);
+        return res.status(401).json({ error: "Invalid Firebase Token" });
     }
-    next();
 };
 
-module.exports = { checkAdmin };
+module.exports = { requireAdmin };

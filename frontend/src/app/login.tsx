@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axiosConfig"; // relative path import
 import { signInWithEmailAndPassword } from "firebase/auth"; 
 import { auth } from "../utils/firebaseConfig"; // Import Firebase config
@@ -27,14 +27,16 @@ export default function LoginScreen() {
 
             // Send ID Token to Backend using axios instance
             const response = await api.post("/auth/login", { idToken });
-            
-            const data = response.data; // Access parsed response data directly
+            const { accessToken, user, redirect } = response.data;
 
-            router.push(data.redirect); // Redirect to the URL sent by the backend
+            // Store token securely (use SecureStorage in production)
+            await AsyncStorage.setItem("authToken", accessToken);
+            
+            router.push(redirect); // Redirect to the URL sent by the backend
         
             
         } catch (error) {
-            console.error("Firebase Auth Error:", error);
+            setError(""+error);
         } 
     };
 
