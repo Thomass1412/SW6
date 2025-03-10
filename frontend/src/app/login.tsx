@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View, Text, TextInput, Button} from "react-native";
+import { View, Text, TextInput, Button, Alert} from "react-native";
 import axios from "axios";
 import api from "../axiosConfig"; //relative path import
 
@@ -18,8 +18,15 @@ export default function LoginScreen() {
     try {
         const response = await api.post("/login", { email, password });
 
-        console.log(response.data.message);
-        router.push("/managerScreens/home"); 
+
+        router.push("/employeeScreens/home"); 
+        if (response.data.role == "Admin") {
+          router.push("/managerScreens/home"); 
+        } 
+
+        if (response.data.role == "Employee") {
+          router.push("/employeeScreens/home");
+        }
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             setError(error.response.data.message);
