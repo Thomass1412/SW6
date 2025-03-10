@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 
 // 🔥 Replace with your Firebase project config
 const firebaseConfig = {
-    apiKey: "AIzaSyAFNbnkTVgZnGijrTqmUJQqmZCeLk96q5E",
+    apiKey: "AIzaSyAFNbnkTVgZnGijrTqmUJQqmZCeLk96q5E", //makeenv
     authDomain: "shift-management-caa00.firebaseapp.com",
     projectId: "shift-management-caa00",
     storageBucket: "shift-management-caa00.firebasestorage.app",
