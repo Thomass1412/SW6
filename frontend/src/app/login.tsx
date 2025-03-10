@@ -23,27 +23,19 @@ export default function LoginScreen() {
             // Sign in with Firebase Authentication
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const idToken = await userCredential.user.getIdToken();
-            console.log("Firebase Token:", idToken);
-            //Send ID Token to Backend
-            const response = await fetch("http://192.168.0.154:5000/auth/login", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ idToken }),
-            });
-            console.log("API Response:", response);
-            const text = await response.text(); // Log raw response before parsing
-            console.log("Raw Response:", text); // Debug API response
-  
-            const data = JSON.parse(text); // Try parsing JSON
-            console.log("Parsed Response:", data);
+            //console.log("Firebase Token:", idToken);
+
+            // Send ID Token to Backend using axios instance
+            const response = await api.post("/auth/login", { idToken });
+            
+            const data = response.data; // Access parsed response data directly
+
+            router.push(data.redirect); // Redirect to the URL sent by the backend
+        
             
         } catch (error) {
             console.error("Firebase Auth Error:", error);
-      } finally {
-        console.log("Login complete.");
-      }
+        } 
     };
 
   return (
@@ -52,7 +44,7 @@ export default function LoginScreen() {
       <TextInput style={{ borderWidth: 1, marginBottom: 10 }} onChangeText={setEmail} />
       <Text>Password:</Text>
       <TextInput style={{ borderWidth: 1, marginBottom: 10 }} secureTextEntry onChangeText={setPassword} />
-      <Button title="Login" onPress={() => {console.log("Login button pressed");  handleLogin(); }} />
+      <Button title="Login" onPress={() => {handleLogin();}} />
       {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
     </View>
   );

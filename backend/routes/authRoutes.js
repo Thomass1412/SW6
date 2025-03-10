@@ -3,22 +3,41 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/user"); // Import User model
 const admin = require("../config/firebase"); // Import Firebase Admin
+const bcrypt = require("bcrypt");
 
-router.post('/signup', async (req, res) => {
-    const { name, email, password, role} = req.body;
+router.post("/signup", async (req, res) => {
+    const { name, email, password, role } = req.body;
+
     try {
-        const userExists = await User.findOne({ email });  
-
+        const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
         }
 
+        // ✅ Create user in Firebase Authentication
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: name,
+        });
+
+        // ✅ Hash password before storing in MongoDB (optional, but unnecessary since Firebase handles it)
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ name, email, password: hashedPassword, role });
+
+        // ✅ Save user in MongoDB
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword, // 🔴 This is now unnecessary since Firebase handles authentication
+            role,
+            firebaseUID: userRecord.uid, // ✅ Store Firebase UID for reference
+        });
+
         await newUser.save();
 
         res.status(201).json({ message: "User registered successfully", user: newUser });
     } catch (error) {
+        console.error("Signup Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -32,18 +51,18 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        // Verify Firebase ID Token
+        // ✅ Verify Firebase ID Token
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const email = decodedToken.email;
 
-        // Find user in MongoDB
+        // ✅ Find user in MongoDB
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(401).json({ error: "User not found" });
         }
 
-        // Generate JWT Token
+        // ✅ Generate JWT Token for session authentication
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET || "default_secret",
@@ -68,6 +87,7 @@ router.post("/login", async (req, res) => {
         return res.status(401).json({ error: "Invalid Firebase Token" });
     }
 });
+
 
 
 module.exports = router;
