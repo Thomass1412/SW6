@@ -14,23 +14,23 @@ router.post("/signup", async (req, res) => {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        // ✅ Create user in Firebase Authentication
+        // Create user in Firebase Authentication
         const userRecord = await admin.auth().createUser({
             email,
             password,
             displayName: name,
         });
 
-        // ✅ Hash password before storing in MongoDB (optional, but unnecessary since Firebase handles it)
+        // Hash password before storing in MongoDB (optional, but unnecessary since Firebase handles it)
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // ✅ Save user in MongoDB
+        // Save user in MongoDB
         const newUser = new User({
             name,
             email,
-            password: hashedPassword, // 🔴 This is now unnecessary since Firebase handles authentication
+            password: hashedPassword, //This is now unnecessary since Firebase handles authentication
             role,
-            firebaseUID: userRecord.uid, // ✅ Store Firebase UID for reference
+            firebaseUID: userRecord.uid, // Store Firebase UID for reference
         });
 
         await newUser.save();
@@ -51,18 +51,18 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        // ✅ Verify Firebase ID Token
+        // Verify Firebase ID Token
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const email = decodedToken.email;
 
-        // ✅ Find user in MongoDB
+        // Find user in MongoDB
         const user = await User.findOne({ email });
 
         if (!user) {
             return res.status(401).json({ error: "User not found" });
         }
 
-        // ✅ Generate JWT Token for session authentication
+        // Generate JWT Token for session authentication
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET || "default_secret",
