@@ -81,7 +81,7 @@ router.post("/login", async (req, res) => {
                 email: user.email,
                 role: user.role,
             },
-            redirect: user.role === "Admin" ? "/managerScreens/home" : "/employeeScreens/home",
+            redirect: user.role === "Admin" ? "/managerScreens/managerHome" : "/employeeScreens/home",
         });
 
     } catch (error) {
