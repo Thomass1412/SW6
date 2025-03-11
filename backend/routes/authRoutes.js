@@ -1,55 +1,104 @@
 const express = require("express");
-const { authTest } = require("../controllers/authController");
-const { verifyToken } = require("../middlewares/authMiddleware");
-import User from '../models/userModel.js';
-import mongoose from 'mongoose';
-
 const router = express.Router();
-
-// Root Endpoint for API Status
-router.get("/", (req, res) => {
-    res.send("API is running!");
-});
-
-// Protected Endpoint
-router.get("/protected", verifyToken, authTest);
+const jwt = require("jsonwebtoken");
+const User = require("../models/user"); // Import User model
+const admin = require("../config/firebase"); // Import Firebase Admin
+const bcrypt = require("bcrypt");
+const { verifyToken } = require("../middlewares/authMiddleware");
 
 
-router.post('/signup', async (req, res) => {
-    const { username, email, password, role} = req.body;
-    const userExists = await User.findOne({ email }); 
-    if (userExists) {
-        res.status(400);
-        throw new Error('User already exists');
-    } 
+router.post("/signup", async (req, res) => {
+    const { name, email, password, role } = req.body;
 
-    const user = await User.create({
-        _id: new mongoose.Types.ObjectId(),
-        username,
-        email,
-        password, 
-        role
-    });
+    try {
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
 
-    res.status(201).json(user);
-});
-
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (user && (await user.matchPassword(password))) {
-        res.json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            token: null
+        // Create user in Firebase Authentication
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: name,
         });
-    } else {
-        res.status(401);
-        throw new Error('Invalid email or password');
-    } 
+
+        // Hash password before storing in MongoDB (optional, but unnecessary since Firebase handles it)
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Save user in MongoDB
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword, //This is now unnecessary since Firebase handles authentication
+            role,
+            firebaseUID: userRecord.uid, // Store Firebase UID for reference
+        });
+
+        await newUser.save();
+
+        res.status(201).json({ message: "User registered successfully", user: newUser });
+    } catch (error) {
+        console.error("Signup Error:", error);
+        res.status(500).json({ error: error.message });
+    }
 });
+
+// Login Route
+router.post("/login", async (req, res) => {
+    console.log("Login request received"); // <-- Check if request reaches backend
+    console.log("Request body:", req.body); // <-- Check if ID Token is received
+    const { idToken } = req.body; // Expect Firebase ID Token from frontend
+
+    if (!idToken) {
+        console.log("Missing ID Token");
+        return res.status(400).json({ error: "Missing ID Token" });
+    }
+
+    try {
+        // Verify Firebase ID Token
+        console.log("Verifying Firebase token...");
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        console.log("Decoded token:", decodedToken);
+
+        const email = decodedToken.email;
+        console.log("User email from token:", email);
+
+        // Find user in MongoDB
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            console.log("User not found in database:", email);
+            return res.status(401).json({ error: "User not found" });
+        }
+        console.log("User found:", user);
+        // Generate JWT Token for session authentication
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            process.env.JWT_SECRET || "default_secret",
+            { expiresIn: "7d" }
+        );
+
+        return res.status(200).json({
+            message: "Login successful",
+            accessToken: token,
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+            },
+            redirect: user.role === "Admin" ? "/managerScreens/managerHome" : "/employeeScreens/home",
+        });
+        console.log("Response sent to frontend");
+    } catch (error) {
+        console.error("Firebase Authentication Error:", error);
+        return res.status(401).json({ error: "Invalid Firebase Token" });
+    }
+});
+
+
 
 module.exports = router;
 
