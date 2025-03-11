@@ -2,7 +2,7 @@ const admin = require("../config/firebase"); // Firebase Admin SDK
 const User = require("../models/user"); // MongoDB User Model
 
 // 🔐 Middleware: Verify Firebase Token & Check Admin Role
-const requireAdmin = async (req, res, next) => {
+const checkAdmin = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1]; // Extract token
         if (!token) {
@@ -28,4 +28,4 @@ const requireAdmin = async (req, res, next) => {
     }
 };
 
-module.exports = { requireAdmin };
+module.exports = { checkAdmin };

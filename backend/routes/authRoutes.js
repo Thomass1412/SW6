@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user"); // Import User model
 const admin = require("../config/firebase"); // Import Firebase Admin
 const bcrypt = require("bcrypt");
+const { verifyToken } = require("../middlewares/authMiddleware");
+
 
 router.post("/signup", async (req, res) => {
     const { name, email, password, role } = req.body;
