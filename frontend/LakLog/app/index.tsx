@@ -13,43 +13,34 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      console.log("Starting login process...");
 
       // Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Firebase login successful:", userCredential);
 
       const idToken = await userCredential.user.getIdToken();
-      console.log("Got ID Token:", idToken);
+      //console.log("Got ID Token:", idToken);
 
       // Send request to backend
-      console.log("Sending request to backend...");
       const response = await fetch("http://192.168.0.154:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
 
-      console.log("Received response from backend:", response);
 
       const textResponse = await response.text();
-      console.log("Raw Response:", textResponse);
 
       const data = JSON.parse(textResponse);
-      console.log("Parsed Response:", data);
 
       if (response.ok) {
         await AsyncStorage.setItem("accessToken", data.accessToken);
         await AsyncStorage.setItem("userRole", data.user.role);
 
-        console.log("Redirecting to:", data.redirect);
         router.replace(data.redirect);
       } else {
-        console.log("Login failed:", data.error);
         alert(data.error || "Login failed");
       }
     } catch (error) {
-      console.error("Login Error:", error);
       alert("Something went wrong");
     } finally {
       setLoading(false);
