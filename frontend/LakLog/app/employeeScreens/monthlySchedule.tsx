@@ -7,7 +7,7 @@ const MonthlySchedule = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Månedlig Vagtplan</Text>
+      <Text style={styles.header}>Monthly Schedule</Text>
       <Calendar
         onDayPress={(day: { dateString: string }) => {
           setSelectedDate(day.dateString);
