@@ -1,17 +1,50 @@
-import { View, Text, Button } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 
-export default function EmployeeMonthlySchedule() {
-  const handleLogout = async () => {
-    await AsyncStorage.clear();
-    router.replace("/");
-  };
+const MonthlySchedule = () => {
+  const [selectedDate, setSelectedDate] = useState('');
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Employee Monthly Schedule</Text>
-      <Button title="Logout" onPress={handleLogout} />
+    <View style={styles.container}>
+      <Text style={styles.header}>Månedlig Vagtplan</Text>
+      <Calendar
+        onDayPress={(day: { dateString: string }) => {
+          setSelectedDate(day.dateString);
+        }}
+        markedDates={{
+          [selectedDate]: { selected: true, selectedColor: 'blue' }
+        }}
+        theme={{
+          selectedDayBackgroundColor: 'blue',
+          todayTextColor: 'red',
+          arrowColor: 'black'
+        }}
+      />
+      <Text style={styles.selectedDateText}>
+        Valgt dato: {selectedDate || 'Ingen dato valgt'}
+      </Text>
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff'
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center'
+  },
+  selectedDateText: {
+    marginTop: 20,
+    fontSize: 18,
+    textAlign: 'center'
+  }
+});
+
+export default MonthlySchedule;
