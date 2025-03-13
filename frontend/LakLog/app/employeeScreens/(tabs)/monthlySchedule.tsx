@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import CustomCalendar from '../../components/customCalender'; 
+import { View, Text, StyleSheet, Button } from 'react-native';
+import CustomCalendar from '../../../components/customCalender'; 
+import { router } from 'expo-router';
 
 const MonthlySchedule = () => {
   const handleDateSelect = (date: string) => {
@@ -8,10 +9,16 @@ const MonthlySchedule = () => {
     // Fetch shifts or perform other actions
   };
 
+  const handleRoute = () => {
+    // Redirect
+    router.replace('/employeeScreens/dailySchedule');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Månedlig Vagtplan</Text>
       <CustomCalendar onDateSelect={handleDateSelect} />
+      <Button title="Opret Vagt" onPress={handleRoute}/>
     </View>
   );
 };
