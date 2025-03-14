@@ -1,13 +1,24 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
 
 export default function EmployeeTabsLayout() {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: "#090908", // Dark background
+          borderTopWidth: 0, // Optional: Removes top border
+        },
+        tabBarActiveBackgroundColor: "#1D1D1D", // Dark background
+        tabBarActiveTintColor: "#F7CB8C", // Slightly grayish active tab
+        tabBarInactiveTintColor: "#F7CB8C", // Icon color
+      }}
+    >
       <Tabs.Screen
         name="monthlySchedule"
         options={{
-          title: "Schedule",
+          title: "Monthly Schedule",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),

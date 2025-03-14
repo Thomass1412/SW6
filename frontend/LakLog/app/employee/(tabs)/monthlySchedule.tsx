@@ -16,7 +16,6 @@ const MonthlySchedule = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Månedlig Vagtplan</Text>
       <CustomCalendar onDateSelect={handleDateSelect} />
       <Button title="Opret Vagt" onPress={handleRoute}/>
     </View>
