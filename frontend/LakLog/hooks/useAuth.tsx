@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function useAuth() {
-  const [user, setUser] = useState<{ role: "employee" | "manager" } | null>(null);
+  const [user, setUser] = useState<{ role: "User" | "Admin" } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export function useAuth() {
     loadUser();
   }, []);
 
-  const login = async (role: "employee" | "manager") => {
+  const login = async (role: "User" | "Admin") => {
     const userData = { role };
     await AsyncStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);

@@ -82,7 +82,7 @@ router.post("/login", async (req, res) => {
                 email: user.email,
                 role: user.role,
             },
-            redirect: user.role === "Admin" ? "/managerScreens/monthlySchedule" : "/employeeScreens/monthlySchedule",
+            redirect: user.role === "Admin" ? "/managerScreens/monthlySchedule" : "/employee/(tabs)/monthlySchedule",
         });
     } catch (error) {
         return res.status(401).json({ error: "Invalid Firebase Token" });

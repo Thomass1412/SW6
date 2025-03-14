@@ -11,7 +11,7 @@ const MonthlySchedule = () => {
 
   const handleRoute = () => {
     // Redirect
-    router.replace('/employeeScreens/dailySchedule');
+    router.replace('/employee/dailySchedule');
   };
 
   return (
