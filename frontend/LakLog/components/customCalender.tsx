@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
+import { useLocalSearchParams } from 'expo-router';
 
 interface CustomCalendarProps {
   markedDates?: { [date: string]: any };
@@ -8,7 +9,14 @@ interface CustomCalendarProps {
 }
 
 const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDateSelect }) => {
-  const [selectedDate, setSelectedDate] = useState('');
+  const { date } = useLocalSearchParams(); // Get date from URL params
+  const [selectedDate, setSelectedDate] = useState<string>(date ? String(date) : '');
+
+  useEffect(() => {
+    if (date) {
+      setSelectedDate(String(date)); // Convert to string explicitly
+    }
+  }, [date]);
 
   const handleDayPress = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);

@@ -1,23 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
-import CustomCalendar from '../../../components/customCalender'; 
-import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import CustomCalendar from '../../../components/customCalender';
+import { useRouter } from 'expo-router';
+import { Button } from 'react-native';
 
 const MonthlySchedule = () => {
-  const handleDateSelect = (date: string) => {
-    console.log('Selected Date:', date);
-    // Fetch shifts or perform other actions
-  };
+  const [selectedDate, setSelectedDate] = useState('');
+  const router = useRouter();
 
-  const handleRoute = () => {
-    // Redirect
-    router.replace('/employee/dailySchedule');
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date);
+    router.push(`/employee/(tabs)/dailySchedule?date=${date}`);
   };
 
   return (
     <View style={styles.container}>
       <CustomCalendar onDateSelect={handleDateSelect} />
-      <Button title="Opret Vagt" onPress={handleRoute}/>
+      {selectedDate && (
+        <Button title="Go to Daily Schedule" onPress={() => router.push(`/employee/(tabs)/dailySchedule?date=${selectedDate}`)} />
+      )}
     </View>
   );
 };
@@ -27,12 +28,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
   },
 });
 
