@@ -36,4 +36,13 @@ router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
     }
 });
 
+router.get("/my-shifts", verifyToken, async (req, res) => {
+    try {
+        const shifts = await Shift.find({ employee: req.user._id }).populate("employee", "name email");
+        res.json(shifts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
