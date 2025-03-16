@@ -46,23 +46,17 @@ router.post("/signup", async (req, res) => {
 
 // Login Route
 router.post("/login", async (req, res) => {
-    console.log("Login request received"); // <-- Check if request reaches backend
-    console.log("Request body:", req.body); // <-- Check if ID Token is received
     const { idToken } = req.body; // Expect Firebase ID Token from frontend
 
     if (!idToken) {
-        console.log("Missing ID Token");
         return res.status(400).json({ error: "Missing ID Token" });
     }
 
     try {
         // Verify Firebase ID Token
-        console.log("Verifying Firebase token...");
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        console.log("Decoded token:", decodedToken);
 
         const email = decodedToken.email;
-        console.log("User email from token:", email);
 
         // Find user in MongoDB
         const user = await User.findOne({ email });
@@ -71,7 +65,6 @@ router.post("/login", async (req, res) => {
             console.log("User not found in database:", email);
             return res.status(401).json({ error: "User not found" });
         }
-        console.log("User found:", user);
         // Generate JWT Token for session authentication
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
@@ -89,11 +82,9 @@ router.post("/login", async (req, res) => {
                 email: user.email,
                 role: user.role,
             },
-            redirect: user.role === "Admin" ? "/managerScreens/managerHome" : "/employeeScreens/home",
+            redirect: user.role === "Admin" ? "/managerScreens/monthlySchedule" : "/employee/(tabs)/monthlySchedule",
         });
-        console.log("Response sent to frontend");
     } catch (error) {
-        console.error("Firebase Authentication Error:", error);
         return res.status(401).json({ error: "Invalid Firebase Token" });
     }
 });

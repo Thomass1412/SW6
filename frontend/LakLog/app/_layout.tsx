@@ -1,28 +1,34 @@
-import { Stack, router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, Slot, useRouter, Redirect } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import { useAuth } from "../hooks/useAuth"; // Assuming you have an auth context
 
-export default function Layout() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("accessToken");
-      if (!token && pathname !== "/") {
-        router.replace("/");
-      } else {
-        setIsAuthenticated(true);
+export default function RootLayout() {
+    const router = useRouter();
+    const { user, loading } = useAuth(); // Fetch user role
+    const [isMounted, setIsMounted] = useState(false);
+  
+    // Ensure layout is mounted before redirection
+    useEffect(() => {
+      setIsMounted(true);
+    }, []);
+  
+    useEffect(() => {
+      if (isMounted && !loading) {
+        if (!user) {
+          router.replace("/"); // Redirect to login
+        } else if (user.role === "User") {
+          router.replace("/employee/(tabs)/monthlySchedule");
+        } else if (user.role === "Admin") {
+          router.replace("/");
+        }
       }
-    };
-    checkAuth();
-  }, [pathname]);
+    }, [user, loading, isMounted]);
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: "Login", headerShown: false }} />
-      <Stack.Screen name="employeeScreens/monthlySchedule" options={{ title: "Employee Schedule" }} />
-      <Stack.Screen name="managerScreens/monthlySchedule" options={{ title: "Manager Schedule" }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="admin" options={{ headerShown: false }} />
+      <Stack.Screen name="employee" options={{ headerShown: false }} />
     </Stack>
   );
 }

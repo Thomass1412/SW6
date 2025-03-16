@@ -1,9 +1,9 @@
 import { View, Text } from 'react-native';
 
-export default function ManagerMonthlySchedule() {
+export default function Profile() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Manager Monthly Schedule</Text>
+      <Text>Profile</Text>
     </View>
   );
 }
