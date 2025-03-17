@@ -39,27 +39,35 @@ router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
 
 router.get("/my-shifts", verifyToken, async (req, res) => {
     try {
-        // Find user by Firebase UID or email
+
+        // Extract date from query params
+        const date = req.query.date;  
+        if (!date) {
+            console.log("Date parameter missing in request");
+            return res.status(400).json({ error: "Date parameter is required" });
+        }
+
+        // Find the logged-in user based on Firebase email
         const user = await User.findOne({ email: req.user.email });
         if (!user) {
+            console.log("User not found in DB");
             return res.status(404).json({ error: "User not found" });
         }
 
+
+        //  Convert date string to Date object
         const startOfDay = new Date(date);
         startOfDay.setUTCHours(0, 0, 0, 0);
 
         const endOfDay = new Date(date);
         endOfDay.setUTCHours(23, 59, 59, 999);
 
-        console.log(`🔍 Searching shifts between ${startOfDay} and ${endOfDay}`);
-
-        // Find shifts for this employee on the selected date
+        // Query MongoDB for shifts on the selected date
         const shifts = await Shift.find({
             employee: user._id,
             date: { $gte: startOfDay, $lte: endOfDay },
         }).populate("employee", "name email");
 
-        console.log("Shifts Found:", shifts);
         res.json(shifts);
     } catch (error) {
         console.error("Error fetching shifts:", error);

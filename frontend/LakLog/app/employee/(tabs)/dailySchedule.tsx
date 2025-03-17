@@ -1,27 +1,59 @@
-import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
+import React, { useLayoutEffect, useState, useEffect, useCallback, useMemo } from 'react';
 import { Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import ShiftList from "../../../components/shiftList";
 import dayjs from 'dayjs';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function EmployeeDailySchedule() {
+export default function DailySchedule() {
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastFetchedDate, setLastFetchedDate] = useState('');
   const router = useRouter();
   const navigation = useNavigation();
   const { date } = useLocalSearchParams();
 
-  // Ensure date is always valid
-  const selectedDate = dayjs(date ? String(date) : dayjs().format('YYYY-MM-DD'));
 
-  // Fetch shifts when date changes
+  const selectedDate = useMemo(() => {
+    return dayjs(date ? String(date) : dayjs().format('YYYY-MM-DD'));
+  }, [date]);
+
+
   useEffect(() => {
     const fetchShifts = async () => {
+      if (lastFetchedDate === selectedDate.format('YYYY-MM-DD')) {
+        console.log("🔸 Skipping fetch, same date as last request.");
+        return; 
+      }
+
       setLoading(true);
       try {
-        const response = await fetch("http://192.168.0.154:5000/shifts/my-shifts");
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          console.error("No token found!");
+          return;
+        }
+
+        const formattedDate = selectedDate.format('YYYY-MM-DD');
+        console.log(`📅 Fetching shifts for date: ${formattedDate}`);
+
+        const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?date=${formattedDate}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          console.error(`Failed to fetch shifts: ${response.status}`);
+          return;
+        }
+
         const data = await response.json();
+  
         setShifts(data);
+        setLastFetchedDate(formattedDate); 
       } catch (error) {
         console.error("Error fetching shifts:", error);
       } finally {
@@ -30,9 +62,9 @@ export default function EmployeeDailySchedule() {
     };
 
     fetchShifts();
-  }, [date]);
+  }, [selectedDate]); 
 
-  // Navigation functions memoized
+
   const goToPreviousDay = useCallback(() => {
     const prevDate = selectedDate.subtract(1, 'day').format('YYYY-MM-DD');
     router.replace(`/employee/(tabs)/dailySchedule?date=${prevDate}`);
@@ -43,7 +75,6 @@ export default function EmployeeDailySchedule() {
     router.replace(`/employee/(tabs)/dailySchedule?date=${nextDate}`);
   }, [selectedDate, router]);
 
-  // Set navigation options
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: { backgroundColor: '#F7CB8C' },
