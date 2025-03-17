@@ -46,35 +46,33 @@ router.post("/signup", async (req, res) => {
 
 // Login Route
 router.post("/login", async (req, res) => {
-    const { idToken } = req.body; // Expect Firebase ID Token from frontend
-
-    if (!idToken) {
-        return res.status(400).json({ error: "Missing ID Token" });
-    }
-
     try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            return res.status(400).json({ error: "ID token is required" });
+        }
+
         // Verify Firebase ID Token
         const decodedToken = await admin.auth().verifyIdToken(idToken);
+        console.log("Decoded Firebase Token:", decodedToken);
 
         const email = decodedToken.email;
+        if (!email) {
+            return res.status(401).json({ error: "Invalid Firebase Token - No Email" });
+        }
 
         // Find user in MongoDB
-        const user = await User.findOne({ email });
-
+        let user = await User.findOne({ email });
         if (!user) {
-            console.log("User not found in database:", email);
-            return res.status(401).json({ error: "User not found" });
+            return res.status(404).json({ error: "User not found" });
         }
-        // Generate JWT Token for session authentication
-        const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
-            process.env.JWT_SECRET || "default_secret",
-            { expiresIn: "7d" }
-        );
 
-        return res.status(200).json({
+        // Generate Session Token (Optionally)
+        const sessionToken = idToken; // OR generate your own JWT if needed.
+
+        res.json({
             message: "Login successful",
-            accessToken: token,
+            accessToken: sessionToken,
             user: {
                 id: user._id,
                 firstName: user.firstName,
@@ -85,12 +83,14 @@ router.post("/login", async (req, res) => {
             redirect: user.role === "Admin" ? "/managerScreens/monthlySchedule" : "/employee/(tabs)/monthlySchedule",
         });
     } catch (error) {
-        return res.status(401).json({ error: "Invalid Firebase Token" });
+        console.error("Login Error:", error);
+        res.status(401).json({ error: "Authentication failed" });
     }
 });
 
 
 
 module.exports = router;
+
 
 

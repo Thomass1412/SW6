@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Shift = require("../models/Shift");
+const User = require("../models/user");
+const Shift = require("../models/shift");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
 
@@ -15,7 +16,7 @@ router.get("/", verifyToken, async (req, res) => {
 });
 
 // Create a shift (Admin only)
-router.post("/", verifyToken, checkAdmin, async (req, res) => {
+router.post("/create", verifyToken, checkAdmin, async (req, res) => {
     try {
         const shift = new Shift(req.body);
         await shift.save();
@@ -38,9 +39,30 @@ router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
 
 router.get("/my-shifts", verifyToken, async (req, res) => {
     try {
-        const shifts = await Shift.find({ employee: req.user._id }).populate("employee", "name email");
+        // Find user by Firebase UID or email
+        const user = await User.findOne({ email: req.user.email });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const startOfDay = new Date(date);
+        startOfDay.setUTCHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setUTCHours(23, 59, 59, 999);
+
+        console.log(`🔍 Searching shifts between ${startOfDay} and ${endOfDay}`);
+
+        // Find shifts for this employee on the selected date
+        const shifts = await Shift.find({
+            employee: user._id,
+            date: { $gte: startOfDay, $lte: endOfDay },
+        }).populate("employee", "name email");
+
+        console.log("Shifts Found:", shifts);
         res.json(shifts);
     } catch (error) {
+        console.error("Error fetching shifts:", error);
         res.status(500).json({ error: error.message });
     }
 });

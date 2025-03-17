@@ -19,7 +19,7 @@ export default function EmployeeDailySchedule() {
     const fetchShifts = async () => {
       setLoading(true);
       try {
-        const response = await fetch("https://192.168.0.154:5000/shifts/my-shifts");
+        const response = await fetch("http://192.168.0.154:5000/shifts/my-shifts");
         const data = await response.json();
         setShifts(data);
       } catch (error) {
