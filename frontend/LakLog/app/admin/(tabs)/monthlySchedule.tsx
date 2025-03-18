@@ -16,9 +16,6 @@ const MonthlySchedule = () => {
   return (
     <View style={styles.container}>
       <CustomCalendar onDateSelect={handleDateSelect} />
-      {selectedDate && (
-        <Button title="Go to Daily Schedule" onPress={() => router.push(`/admin/(tabs)/operations?date=${selectedDate}`)} />
-      )}
     </View>
   );
 };
