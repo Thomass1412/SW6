@@ -66,7 +66,7 @@ export default function LoginScreen() {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Login"}</Text>
+        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Sign in"}</Text>
       </TouchableOpacity>
     </View>
   );

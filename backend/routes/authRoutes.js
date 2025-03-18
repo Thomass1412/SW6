@@ -80,7 +80,7 @@ router.post("/login", async (req, res) => {
                 email: user.email,
                 role: user.role,
             },
-            redirect: user.role === "Admin" ? "/managerScreens/monthlySchedule" : "/employee/(tabs)/monthlySchedule",
+            redirect: user.role === "Admin" ? "/admin/(tabs)/monthlySchedule" : "/employee/(tabs)/monthlySchedule",
         });
     } catch (error) {
         console.error("Login Error:", error);
