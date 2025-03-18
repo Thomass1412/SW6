@@ -14,11 +14,9 @@ export default function DailySchedule() {
   const navigation = useNavigation();
   const { date } = useLocalSearchParams();
 
-
   const selectedDate = useMemo(() => {
     return dayjs(date ? String(date) : dayjs().format('YYYY-MM-DD'));
   }, [date]);
-
 
   useEffect(() => {
     const fetchShifts = async () => {
@@ -64,7 +62,6 @@ export default function DailySchedule() {
 
     fetchShifts();
   }, [selectedDate]); 
-
 
   const goToPreviousDay = useCallback(() => {
     const prevDate = selectedDate.subtract(1, 'day').format('YYYY-MM-DD');

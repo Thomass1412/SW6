@@ -13,7 +13,6 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
   const { date } = useLocalSearchParams();
   const navigation = useNavigation();
 
-  // State for tracking selected date
   const [selectedDate, setSelectedDate] = useState(dayjs(date ? String(date) : new Date()));
 
   useEffect(() => {
@@ -38,7 +37,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
     setSelectedDate((prev) => prev.add(1, 'month'));
   };
 
-  // Custom Header UI
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: { backgroundColor: '#F7CB8C' },
@@ -71,20 +70,24 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
           [selectedDate.format('YYYY-MM-DD')]: { selected: true, selectedColor: '#F7CB8C' },
         }}
         hideArrows={true} 
-        disableSwipeMonths={true} 
+        disableSwipeMonths={true}
+        renderHeader={() => null} 
         style={styles.calendar}
         theme={{
           backgroundColor: '#FFFAE8',
           calendarBackground: '#FFFAE8',
           selectedDayBackgroundColor: 'blue',
-          selectedDayTextColor: '#ffffff',
+          selectedDayTextColor: 'black',
           todayTextColor: 'red',
           dayTextColor: 'black',
           monthTextColor: 'black',
           textDayFontWeight: 'regular',
           textMonthFontWeight: 'bold',
           textDayHeaderFontWeight: 'bold',
-          textSectionTitleColor: 'black', // Makes weekday names black
+          textSectionTitleColor: 'black', 
+          textDayFontSize: 18, 
+          textMonthFontSize: 13, 
+          textDayHeaderFontSize: 15.5, 
         }}
       />
     </View>
