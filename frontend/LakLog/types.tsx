@@ -4,5 +4,6 @@ export interface Shift {
     location: string;
     startTime: string;
     endTime: string;
+    jobTitle: string;
   }
   

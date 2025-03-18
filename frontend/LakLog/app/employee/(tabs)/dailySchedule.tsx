@@ -1,9 +1,10 @@
 import React, { useLayoutEffect, useState, useEffect, useCallback, useMemo } from 'react';
-import { Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import ShiftList from "../../../components/shiftList";
 import dayjs from 'dayjs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from '@expo/vector-icons';
 
 export default function DailySchedule() {
   const [shifts, setShifts] = useState([]);
@@ -98,10 +99,53 @@ export default function DailySchedule() {
 
   if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
+  const styles = StyleSheet.create({
+    button: {
+      backgroundColor: "#FFDDAD",
+      padding: 10,
+      marginVertical: 10,
+      borderRadius: 20,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderWidth: 2, 
+      borderColor: "#000",
+    },
+    floatingButton: {
+      position: 'absolute',
+      bottom: 30,
+      right: 30,
+      backgroundColor: '#F7CB8C',
+      padding: 15,
+      borderRadius: 20,
+      shadowColor: '#000',
+      shadowOpacity: 0.3,
+      shadowRadius: 5,
+      elevation: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 2, 
+      borderColor: '#000',
+    },
+    floatingButtonText: {
+      color: '#000',
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginLeft: 5, 
+    },
+  });
+
   return (
-    <View style={{ backgroundColor: '#FFFAE8', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>Today's Shifts</Text>
-      <ShiftList shifts={shifts} />
+    <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
+        <ShiftList shifts={shifts} />
+      </View>
+      <TouchableOpacity style={styles.floatingButton} onPress={() => alert('This takes you to unavailability page')}>
+        <Ionicons name="add" size={30} color="#000" />
+        <Text style={styles.floatingButtonText}>Unavailability</Text>
+      </TouchableOpacity>
     </View>
   );
 }
