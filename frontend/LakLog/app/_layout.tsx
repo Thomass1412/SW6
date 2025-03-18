@@ -20,7 +20,7 @@ export default function RootLayout() {
         } else if (user.role === "User") {
           router.replace("/employee/(tabs)/monthlySchedule");
         } else if (user.role === "Admin") {
-          router.replace("/");
+          router.replace("/admin/(tabs)/monthlySchedule");
         }
       }
     }, [user, loading, isMounted]);

@@ -18,7 +18,7 @@ export default function LoginScreen() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
       const idToken = await userCredential.user.getIdToken();
-      //console.log("Got ID Token:", idToken);
+      console.log("Got ID Token:", idToken);
 
       // Send request to backend
       const response = await fetch("http://192.168.0.154:5000/auth/login", {
@@ -66,7 +66,7 @@ export default function LoginScreen() {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Login"}</Text>
+        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Sign in"}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#FFFAE8",
   },
   title: {
     fontSize: 24,
@@ -95,14 +95,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#F7CB8C",
     padding: 15,
     borderRadius: 10,
     width: "80%",
     alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: "#000000",
     fontSize: 18,
   },
 });

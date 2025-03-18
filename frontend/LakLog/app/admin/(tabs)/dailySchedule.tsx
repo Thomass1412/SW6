@@ -14,11 +14,9 @@ export default function DailySchedule() {
   const navigation = useNavigation();
   const { date } = useLocalSearchParams();
 
-
   const selectedDate = useMemo(() => {
     return dayjs(date ? String(date) : dayjs().format('YYYY-MM-DD'));
   }, [date]);
-
 
   useEffect(() => {
     const fetchShifts = async () => {
@@ -65,15 +63,14 @@ export default function DailySchedule() {
     fetchShifts();
   }, [selectedDate]); 
 
-
   const goToPreviousDay = useCallback(() => {
     const prevDate = selectedDate.subtract(1, 'day').format('YYYY-MM-DD');
-    router.replace(`/employee/(tabs)/dailySchedule?date=${prevDate}`);
+    router.replace(`/admin/(tabs)/dailySchedule?date=${prevDate}`);
   }, [selectedDate, router]);
 
   const goToNextDay = useCallback(() => {
     const nextDate = selectedDate.add(1, 'day').format('YYYY-MM-DD');
-    router.replace(`/employee/(tabs)/dailySchedule?date=${nextDate}`);
+    router.replace(`/admin/(tabs)/dailySchedule?date=${nextDate}`);
   }, [selectedDate, router]);
 
   useLayoutEffect(() => {
