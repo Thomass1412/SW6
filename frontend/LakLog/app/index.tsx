@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#FFFAE8",
   },
   title: {
     fontSize: 24,
@@ -95,14 +95,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#F7CB8C",
     padding: 15,
     borderRadius: 10,
     width: "80%",
     alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: "#000000",
     fontSize: 18,
   },
 });
