@@ -43,7 +43,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
       headerStyle: { backgroundColor: '#F7CB8C' },
       headerTitle: () => (
         <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 85 }}>
-          {selectedDate.format('DD MMMM YYYY')}
+          {selectedDate.format('MMMM YYYY')}
         </Text>
       ),
       headerLeft: () => (

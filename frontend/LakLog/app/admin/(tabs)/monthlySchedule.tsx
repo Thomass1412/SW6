@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import CustomCalendar from '../../../components/customCalender';
+import CustomButton from '../../../components/CustomButton';
 import { useRouter } from 'expo-router';
 import { Button } from 'react-native';
 
@@ -16,6 +17,12 @@ const MonthlySchedule = () => {
   return (
     <View style={styles.container}>
       <CustomCalendar onDateSelect={handleDateSelect} />
+      <CustomButton 
+        onPress={() => alert('This takes you to unavailability page')} 
+        iconName="add" 
+        text="New Shift"
+        position={{ bottom: 30, right: 30 }}
+      />
     </View>
   );
 };
