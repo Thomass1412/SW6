@@ -40,7 +40,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerStyle: { backgroundColor: '#F7CB8C' },
+      headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
       headerTitleAlign: 'center', 
       headerTitle: () => (
         <Text style={{ fontSize: 20, fontWeight: 'bold'}}>

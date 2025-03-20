@@ -9,9 +9,10 @@ export default function CreateShift() {
 
   useEffect(() => {
     navigation.setOptions({
-      headerStyle: { backgroundColor: "#F7CB8C" },
+      headerStyle: {height: 200, backgroundColor: "#F7CB8C" },
+      headerTitleAlign: "center",
       headerTitle: () => (
-              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 85 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
                 Create Shift
               </Text>
             ), 
