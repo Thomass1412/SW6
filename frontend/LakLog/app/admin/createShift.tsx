@@ -197,6 +197,7 @@ export default function CreateShift() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    backgroundColor: '#FFFAE8',
   },
   label: {
     fontSize: 16,
