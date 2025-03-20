@@ -17,7 +17,7 @@ const MonthlySchedule = () => {
     <View style={styles.container}>
       <CustomCalendar onDateSelect={handleDateSelect} />
       <CustomButton 
-        onPress={() => router.replace(`/admin/createShift`)}  
+        onPress={() => router.push(`/admin/createShift`)}  
         iconName="add" 
         text="New Shift"
         position={{ bottom: 30, right: 30 }}
