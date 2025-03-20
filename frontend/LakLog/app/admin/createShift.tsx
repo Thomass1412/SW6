@@ -9,7 +9,7 @@ export default function CreateShift() {
 
   useEffect(() => {
     navigation.setOptions({
-      headerStyle: {height: 200, backgroundColor: "#F7CB8C" },
+      headerStyle: { height: 80,backgroundColor: "#F7CB8C" },
       headerTitleAlign: "center",
       headerTitle: () => (
               <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
@@ -28,20 +28,8 @@ export default function CreateShift() {
   }, [navigation, router]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Shift</Text>
+    <View>
+      <Text >Create Shift</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-});
