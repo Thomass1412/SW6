@@ -37,7 +37,7 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
         }).populate("employee", "name email");
 
         if (shifts.length === 0) {
-            return res.status(404).json({ error: "No shifts found for this date" });
+            return res.status(200).json([]); 
         }
 
         res.json(shifts);
