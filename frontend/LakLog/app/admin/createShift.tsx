@@ -1,194 +1,106 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
-import { useForm, Controller } from "react-hook-form";
+import React, { useState } from "react";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import axios from "axios";
-
-interface ShiftData {
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  jobTitle: "Licorice Making" | "Licorice Selling" | "Cleaning Machines";
-  status: "scheduled" | "completed" | "canceled";
-}
 
 export default function CreateShift() {
-  const router = useRouter();
-  const navigation = useNavigation();
-  const { control, handleSubmit, setValue, watch } = useForm<ShiftData>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [repeat, setRepeat] = useState(false);
-  const [repeatWeeks, setRepeatWeeks] = useState(1);
+  const [date, setDate] = useState("Select Date");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [jobTitle, setJobTitle] = useState("Licorice Making");
+  const [status, setStatus] = useState("scheduled");
+  const [repeat, setRepeat] = useState("none");
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerStyle: { height: 80, backgroundColor: "#F7CB8C" },
-      headerTitleAlign: "center",
-      headerTitle: () => (
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Create Shift</Text>
-      ),
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 15 }}>
-          <Text style={{ fontSize: 30 }}>◀</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, router]);
+  const handleSubmit = async () => {
+    const shiftData = {
+      date,
+      startTime,
+      endTime,
+      location,
+      jobTitle,
+      status,
+      repeat,
+    };
 
-  const onSubmit = async (data: ShiftData) => {
-    setIsSubmitting(true);
     try {
-      const shifts = [];
-  
-      for (let i = 0; i < (repeat ? repeatWeeks : 1); i++) {
-        const shiftDate = new Date(data.date);
-        shiftDate.setDate(shiftDate.getDate() + i * 7);
-        shifts.push({
-          ...data,
-          date: shiftDate.toISOString(),
-        });
+      const response = await fetch("https://192.168.0.154:5000/shifts/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(shiftData),
+      });
+      
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", "Shift created successfully");
+      } else {
+        Alert.alert("Error", result.error || "Something went wrong");
       }
-  
-      await Promise.all(
-        shifts.map((shift) => axios.post("http://192.168.0.154:5000/create", shift))
-      );
-  
-      Alert.alert("Success", "Shift(s) created successfully!");
-      router.push("/admin/(tabs)/monthlySchedule"); // Navigate to shift list page after creation
     } catch (error) {
-      // Ensure we properly extract the error message
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
-  
-      Alert.alert("Error", errorMessage);
-    } finally {
-      setIsSubmitting(false);
+      Alert.alert("Error", "Network error");
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Date:</Text>
-      <Controller
-        control={control}
-        name="date"
-        defaultValue=""
-        rules={{ required: "Date is required" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+      <Text style={styles.label}>Select Date</Text>
+      <Picker selectedValue={date} onValueChange={(value) => setDate(value)} style={styles.picker}>
+        <Picker.Item label="Select Date" value="Select Date" />
+        <Picker.Item label="Today" value="Today" />
+        <Picker.Item label="Tomorrow" value="Tomorrow" />
+        <Picker.Item label="Next Week" value="Next Week" />
+      </Picker>
+
+      <Text style={styles.label}>Start Time</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="HH:MM"
+        value={startTime}
+        onChangeText={setStartTime}
       />
 
-      <Text style={styles.label}>Start Time:</Text>
-      <Controller
-        control={control}
-        name="startTime"
-        defaultValue=""
-        rules={{ required: "Start time is required" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="HH:MM"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+      <Text style={styles.label}>End Time</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="HH:MM"
+        value={endTime}
+        onChangeText={setEndTime}
       />
 
-      <Text style={styles.label}>End Time:</Text>
-      <Controller
-        control={control}
-        name="endTime"
-        defaultValue=""
-        rules={{ required: "End time is required" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="HH:MM"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+      <Text style={styles.label}>Location</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter location"
+        value={location}
+        onChangeText={setLocation}
       />
 
-      <Text style={styles.label}>Location:</Text>
-      <Controller
-        control={control}
-        name="location"
-        defaultValue=""
-        rules={{ required: "Location is required" }}
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Enter location"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-      />
+      <Text style={styles.label}>Job Title</Text>
+      <Picker selectedValue={jobTitle} onValueChange={(value) => setJobTitle(value)} style={styles.picker}>
+        <Picker.Item label="Licorice Making" value="Licorice Making" />
+        <Picker.Item label="Licorice Selling" value="Licorice Selling" />
+        <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
+      </Picker>
 
-      <Text style={styles.label}>Job Title:</Text>
-      <Controller
-        control={control}
-        name="jobTitle"
-        defaultValue="Licorice Making"
-        render={({ field: { onChange, value } }) => (
-          <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
-            <Picker.Item label="Licorice Making" value="Licorice Making" />
-            <Picker.Item label="Licorice Selling" value="Licorice Selling" />
-            <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
-          </Picker>
-        )}
-      />
+      <Text style={styles.label}>Status</Text>
+      <Picker selectedValue={status} onValueChange={(value) => setStatus(value)} style={styles.picker}>
+        <Picker.Item label="Scheduled" value="scheduled" />
+        <Picker.Item label="Completed" value="completed" />
+        <Picker.Item label="Canceled" value="canceled" />
+      </Picker>
 
-      <Text style={styles.label}>Status:</Text>
-      <Controller
-        control={control}
-        name="status"
-        defaultValue="scheduled"
-        render={({ field: { onChange, value } }) => (
-          <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
-            <Picker.Item label="Scheduled" value="scheduled" />
-            <Picker.Item label="Completed" value="completed" />
-            <Picker.Item label="Canceled" value="canceled" />
-          </Picker>
-        )}
-      />
+      <Text style={styles.label}>Repeat</Text>
+      <Picker selectedValue={repeat} onValueChange={(value) => setRepeat(value)} style={styles.picker}>
+        <Picker.Item label="None" value="none" />
+        <Picker.Item label="Daily" value="daily" />
+        <Picker.Item label="Weekly" value="weekly" />
+        <Picker.Item label="Bi-Weekly" value="bi-weekly" />
+        <Picker.Item label="Monthly" value="monthly" />
+      </Picker>
 
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={() => setRepeat(!repeat)}
-      >
-        <Text style={styles.checkbox}>{repeat ? "☑" : "☐"} Repeat weekly</Text>
-      </TouchableOpacity>
-
-      {repeat && (
-        <View>
-          <Text style={styles.label}>Number of weeks:</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="Enter number of weeks"
-            value={String(repeatWeeks)}
-            onChangeText={(value) => setRepeatWeeks(parseInt(value) || 1)}
-          />
-        </View>
-      )}
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-      >
-        <Text style={styles.buttonText}>{isSubmitting ? "Creating..." : "Create Shift"}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Create Shift</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -196,44 +108,38 @@ export default function CreateShift() {
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
     padding: 20,
-    backgroundColor: '#FFFAE8',
+    backgroundColor: "#fff",
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginTop: 10,
   },
   input: {
-    height: 40,
-    borderColor: "#ccc",
     borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
     borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 10,
+    marginTop: 5,
   },
   picker: {
-    height: 40,
-    marginBottom: 10,
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  checkbox: {
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginTop: 5,
   },
   button: {
     backgroundColor: "#F7CB8C",
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 5,
+    marginTop: 20,
     alignItems: "center",
-    marginTop: 10,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#333",
   },
 });
-
