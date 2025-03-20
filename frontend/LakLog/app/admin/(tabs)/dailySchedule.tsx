@@ -44,7 +44,6 @@ export default function DailySchedule() {
             "Content-Type": "application/json",
           },
         });
-        console.log(response);
 
         if (!response.ok) {
           console.error(`Failed to fetch shifts: ${response.status}`);
@@ -105,7 +104,7 @@ export default function DailySchedule() {
         <ShiftList shifts={shifts} />
       </View>
       <CustomButton 
-        onPress={() => alert('This takes you to unavailability page')} 
+        onPress={() => router.replace(`/admin/createShift`)} 
         iconName="add" 
         text="New Shift"
         position={{ bottom: 30, right: 30 }}

@@ -42,7 +42,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
     navigation.setOptions({
       headerStyle: { backgroundColor: '#F7CB8C' },
       headerTitle: () => (
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 85 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 95 }}>
           {selectedDate.format('MMMM YYYY')}
         </Text>
       ),

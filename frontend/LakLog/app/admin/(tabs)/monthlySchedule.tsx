@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import CustomCalendar from '../../../components/customCalender';
 import CustomButton from '../../../components/CustomButton';
 import { useRouter } from 'expo-router';
-import { Button } from 'react-native';
 
 const MonthlySchedule = () => {
   const [selectedDate, setSelectedDate] = useState('');
@@ -18,7 +17,7 @@ const MonthlySchedule = () => {
     <View style={styles.container}>
       <CustomCalendar onDateSelect={handleDateSelect} />
       <CustomButton 
-        onPress={() => alert('This takes you to unavailability page')} 
+        onPress={() => router.replace(`/admin/createShift`)}  
         iconName="add" 
         text="New Shift"
         position={{ bottom: 30, right: 30 }}
