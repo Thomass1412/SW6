@@ -37,13 +37,14 @@ export default function DailySchedule() {
         const formattedDate = selectedDate.format('YYYY-MM-DD');
         console.log(`📅 Fetching shifts for date: ${formattedDate}`);
 
-        const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?date=${formattedDate}`, {
+        const response = await fetch(`http://192.168.0.154:5000/shifts/all-date?date=${formattedDate}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
+        console.log(response);
 
         if (!response.ok) {
           console.error(`Failed to fetch shifts: ${response.status}`);
