@@ -20,7 +20,7 @@ export default function LoginScreen() {
       const idToken = await userCredential.user.getIdToken();
       console.log("Got ID Token:", idToken);
 
-      // Send request to backend
+  
       const response = await fetch("http://192.168.0.154:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

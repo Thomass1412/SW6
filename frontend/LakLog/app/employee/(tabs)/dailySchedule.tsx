@@ -79,8 +79,9 @@ export default function DailySchedule() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: { backgroundColor: '#F7CB8C' },
+      headerTitleAlign: 'center', 
       headerTitle: () => (
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 85 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold'}}>
           {selectedDate.format('DD MMMM YYYY')}
         </Text>
       ),

@@ -15,6 +15,39 @@ router.get("/", verifyToken, async (req, res) => {
     }
 });
 
+// Get all shifts from a specific date(accessible to all authenticated users)
+router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
+    try {
+        // Extract date from query params
+        const date = req.query.date;
+        if (!date) {
+            return res.status(400).json({ error: "Date parameter is required" });
+        }
+
+        // Convert date string to Date object
+        const startOfDay = new Date(date);
+        startOfDay.setUTCHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setUTCHours(23, 59, 59, 999);
+
+        // Query MongoDB for shifts on the selected date
+        const shifts = await Shift.find({
+            date: { $gte: startOfDay, $lte: endOfDay },
+        }).populate("employee", "name email");
+
+        if (shifts.length === 0) {
+            return res.status(200).json([]); 
+        }
+
+        res.json(shifts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
 // Create a shift (Admin only)
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
     try {

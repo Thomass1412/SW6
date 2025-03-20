@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState, useEffect, useCallback, useMemo } fro
 import { Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import ShiftList from "../../../components/shiftList";
+import CustomButton from '../../../components/CustomButton';
 import dayjs from 'dayjs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from '@expo/vector-icons';
@@ -36,7 +37,7 @@ export default function DailySchedule() {
         const formattedDate = selectedDate.format('YYYY-MM-DD');
         console.log(`📅 Fetching shifts for date: ${formattedDate}`);
 
-        const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?date=${formattedDate}`, {
+        const response = await fetch(`http://192.168.0.154:5000/shifts/all-date?date=${formattedDate}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -75,9 +76,10 @@ export default function DailySchedule() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerStyle: { backgroundColor: '#F7CB8C' },
+      headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
+      headerTitleAlign: "center",
       headerTitle: () => (
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 85 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold'}}>
           {selectedDate.format('DD MMMM YYYY')}
         </Text>
       ),
@@ -96,53 +98,18 @@ export default function DailySchedule() {
 
   if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
-  const styles = StyleSheet.create({
-    button: {
-      backgroundColor: "#FFDDAD",
-      padding: 10,
-      marginVertical: 10,
-      borderRadius: 20,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-      borderWidth: 2, 
-      borderColor: "#000",
-    },
-    floatingButton: {
-      position: 'absolute',
-      bottom: 30,
-      right: 30,
-      backgroundColor: '#F7CB8C',
-      padding: 15,
-      borderRadius: 20,
-      shadowColor: '#000',
-      shadowOpacity: 0.3,
-      shadowRadius: 5,
-      elevation: 5,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 2, 
-      borderColor: '#000',
-    },
-    floatingButtonText: {
-      color: '#000',
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginLeft: 5, 
-    },
-  });
-
   return (
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
         <ShiftList shifts={shifts} />
       </View>
-      <TouchableOpacity style={styles.floatingButton} onPress={() => alert('This takes you to unavailability page')}>
-        <Ionicons name="add" size={30} color="#000" />
-        <Text style={styles.floatingButtonText}>Unavailability</Text>
-      </TouchableOpacity>
+      <CustomButton 
+        onPress={() => router.push(`/admin/createShift`)} 
+        iconName="add" 
+        text="New Shift"
+        position={{ bottom: 30, right: 30 }}
+      />
     </View>
   );
 }
