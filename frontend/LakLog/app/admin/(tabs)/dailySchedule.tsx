@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState, useEffect, useCallback, useMemo } fro
 import { Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import ShiftList from "../../../components/shiftList";
+import CustomButton from '../../../components/CustomButton';
 import dayjs from 'dayjs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from '@expo/vector-icons';
@@ -139,10 +140,12 @@ export default function DailySchedule() {
         <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
         <ShiftList shifts={shifts} />
       </View>
-      <TouchableOpacity style={styles.floatingButton} onPress={() => alert('This takes you to unavailability page')}>
-        <Ionicons name="add" size={30} color="#000" />
-        <Text style={styles.floatingButtonText}>Unavailability</Text>
-      </TouchableOpacity>
+      <CustomButton 
+        onPress={() => alert('This takes you to unavailability page')} 
+        iconName="add" 
+        text="Unavailability"
+        style={styles.floatingButton}
+      />
     </View>
   );
 }
