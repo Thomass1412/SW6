@@ -105,7 +105,7 @@ export default function DailySchedule() {
         <ShiftList shifts={shifts} />
       </View>
       <CustomButton 
-        onPress={() => router.push(`/admin/createShift`)} 
+        onPress={() => router.push(`/admin/createShift?date=${selectedDate.format("YYYY-MM-DD")}`)}  
         iconName="add" 
         text="New Shift"
         position={{ bottom: 30, right: 30 }}

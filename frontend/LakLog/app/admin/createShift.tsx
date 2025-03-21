@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams } from "expo-router";
+import dayjs from "dayjs";
 
 export default function CreateShift() {
   const [date, setDate] = useState(new Date());
@@ -12,14 +14,51 @@ export default function CreateShift() {
   const [location, setLocation] = useState("Lokation A");
   const [jobTitle, setJobTitle] = useState("Licorice Making");
   const [repeat, setRepeat] = useState("none");
+  const [employees, setEmployees] = useState<{ _id: string; name: string }[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState("none");
+  const { date: rawPrefillDate } = useLocalSearchParams();
 
-  // TEMP: Hardcoded employee ID (should come from a picker or auth context)
-  const employeeId = "67ce9a90534573f3bca2d814";
+  useEffect(() => {
+    const resolvedDate = Array.isArray(rawPrefillDate) ? rawPrefillDate[0] : rawPrefillDate;
+    if (resolvedDate) {
+      const parsed = dayjs(resolvedDate);
+      if (parsed.isValid()) {
+        setDate(parsed.toDate());
+      }
+    }
+  }, [rawPrefillDate]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          console.error("No token found!");
+          return;
+        }
+  
+        const response = await fetch("http://192.168.0.154:5000/users/employees", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        const data = await response.json();
+        setEmployees(data);
+      } catch (error) {
+        console.error("Failed to fetch employees", error);
+      }
+    };
+  
+    fetchEmployees();
+  }, []);
 
   const handleSubmit = async () => {
     const shiftData = {
-      employee: employeeId,
-      date: date.toISOString(), // ISO string to match backend format
+      ...(selectedEmployee !== "none" && { employee: selectedEmployee }),
+      date: date.toISOString(),
       startTime,
       endTime,
       location,
@@ -56,6 +95,14 @@ export default function CreateShift() {
   };
 
   const showDatepicker = () => setShowDatePicker(true);
+
+  const isFormValid =
+    date &&
+    startTime.trim() &&
+    endTime.trim() &&
+    location.trim() &&
+    jobTitle.trim() &&
+    repeat.trim();
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -95,6 +142,18 @@ export default function CreateShift() {
         <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
       </Picker>
 
+      <Text style={styles.label}>Assign to Employee (Optional)</Text>
+      <Picker
+        selectedValue={selectedEmployee}
+        onValueChange={(value) => setSelectedEmployee(value)}
+        style={styles.picker}
+      >
+        <Picker.Item label="None" value="none" />
+        {employees.map((emp) => (
+          <Picker.Item key={emp._id} label={emp.name} value={emp._id} />
+        ))}
+      </Picker>
+
       <Text style={styles.label}>Repeat</Text>
       <Picker selectedValue={repeat} onValueChange={setRepeat} style={styles.picker}>
         <Picker.Item label="None" value="none" />
@@ -104,7 +163,10 @@ export default function CreateShift() {
         <Picker.Item label="Monthly" value="monthly" />
       </Picker>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+      <TouchableOpacity
+        style={[styles.button, { opacity: isFormValid ? 1 : 0.5 }]}
+        onPress={handleSubmit}
+        disabled={!isFormValid}>
         <Text style={styles.buttonText}>Create Shift</Text>
       </TouchableOpacity>
     </ScrollView>
