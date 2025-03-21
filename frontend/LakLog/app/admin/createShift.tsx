@@ -1,34 +1,39 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CreateShift() {
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [location, setLocation] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
+  const [location, setLocation] = useState("Lokation A");
   const [jobTitle, setJobTitle] = useState("Licorice Making");
   const [repeat, setRepeat] = useState("none");
 
+  // TEMP: Hardcoded employee ID (should come from a picker or auth context)
+  const employeeId = "67ce9a90534573f3bca2d814";
+
   const handleSubmit = async () => {
-    console.log(date, startTime, endTime, location, jobTitle, repeat);
     const shiftData = {
-      date,
+      employee: employeeId,
+      date: date.toISOString(), // ISO string to match backend format
       startTime,
       endTime,
       location,
       jobTitle,
-      status: "Scheduled",
+      status: "scheduled",
       repeat,
     };
 
     try {
       const token = await AsyncStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No token found!");
-          return;
-        }
+      if (!token) {
+        console.error("No token found!");
+        return;
+      }
 
       const response = await fetch("http://192.168.0.154:5000/shifts/create", {
         method: "POST",
@@ -38,7 +43,7 @@ export default function CreateShift() {
         },
         body: JSON.stringify(shiftData),
       });
-      
+
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Shift created successfully");
@@ -50,49 +55,48 @@ export default function CreateShift() {
     }
   };
 
+  const showDatepicker = () => setShowDatePicker(true);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Select Date</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="DD/MM/YYYY"
-        value={date}
-        onChangeText={setDate}
-      />
+      <TouchableOpacity style={styles.input} onPress={showDatepicker}>
+        <Text>{date.toDateString()}</Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setDate(selectedDate);
+          }}
+        />
+      )}
 
-      <Text style={styles.label}>Start Time</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="HH:MM"
-        value={startTime}
-        onChangeText={setStartTime}
-      />
+      <Text style={styles.label}>Start Time (HH:MM)</Text>
+      <TextInput style={styles.input} value={startTime} onChangeText={setStartTime} />
 
-      <Text style={styles.label}>End Time</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="HH:MM"
-        value={endTime}
-        onChangeText={setEndTime}
-      />
+      <Text style={styles.label}>End Time (HH:MM)</Text>
+      <TextInput style={styles.input} value={endTime} onChangeText={setEndTime} />
 
       <Text style={styles.label}>Location</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter location"
-        value={location}
-        onChangeText={setLocation}
-      />
+      <Picker selectedValue={location} onValueChange={setLocation} style={styles.picker}>
+        <Picker.Item label="Lokation A" value="Lokation A" />
+        <Picker.Item label="Lokation B" value="Lokation B" />
+        <Picker.Item label="Lokation C" value="Lokation C" />
+      </Picker>
 
       <Text style={styles.label}>Job Title</Text>
-      <Picker selectedValue={jobTitle} onValueChange={(value) => setJobTitle(value)} style={styles.picker}>
+      <Picker selectedValue={jobTitle} onValueChange={setJobTitle} style={styles.picker}>
         <Picker.Item label="Licorice Making" value="Licorice Making" />
         <Picker.Item label="Licorice Selling" value="Licorice Selling" />
         <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
       </Picker>
 
       <Text style={styles.label}>Repeat</Text>
-      <Picker selectedValue={repeat} onValueChange={(value) => setRepeat(value)} style={styles.picker}>
+      <Picker selectedValue={repeat} onValueChange={setRepeat} style={styles.picker}>
         <Picker.Item label="None" value="none" />
         <Picker.Item label="Daily" value="daily" />
         <Picker.Item label="Weekly" value="weekly" />
@@ -126,9 +130,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   picker: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
     marginTop: 5,
   },
   button: {
