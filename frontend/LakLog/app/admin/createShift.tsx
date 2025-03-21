@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CreateShift() {
   const [date, setDate] = useState("");
@@ -11,20 +12,28 @@ export default function CreateShift() {
   const [repeat, setRepeat] = useState("none");
 
   const handleSubmit = async () => {
+    console.log(date, startTime, endTime, location, jobTitle, repeat);
     const shiftData = {
       date,
       startTime,
       endTime,
       location,
       jobTitle,
-      status,
+      status: "Scheduled",
       repeat,
     };
 
     try {
-      const response = await fetch("https://192.168.0.154:5000/shifts/create", {
+      const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          console.error("No token found!");
+          return;
+        }
+
+      const response = await fetch("http://192.168.0.154:5000/shifts/create", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(shiftData),

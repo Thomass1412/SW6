@@ -50,6 +50,7 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
 
 // Create a shift (Admin only)
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
+    console.log("Create shift request received");
     try {
         const shift = new Shift(req.body);
         await shift.save();
