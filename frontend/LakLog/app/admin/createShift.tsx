@@ -3,12 +3,11 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert 
 import { Picker } from "@react-native-picker/picker";
 
 export default function CreateShift() {
-  const [date, setDate] = useState("Select Date");
+  const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
   const [jobTitle, setJobTitle] = useState("Licorice Making");
-  const [status, setStatus] = useState("scheduled");
   const [repeat, setRepeat] = useState("none");
 
   const handleSubmit = async () => {
@@ -45,12 +44,12 @@ export default function CreateShift() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Select Date</Text>
-      <Picker selectedValue={date} onValueChange={(value) => setDate(value)} style={styles.picker}>
-        <Picker.Item label="Select Date" value="Select Date" />
-        <Picker.Item label="Today" value="Today" />
-        <Picker.Item label="Tomorrow" value="Tomorrow" />
-        <Picker.Item label="Next Week" value="Next Week" />
-      </Picker>
+      <TextInput
+        style={styles.input}
+        placeholder="DD/MM/YYYY"
+        value={date}
+        onChangeText={setDate}
+      />
 
       <Text style={styles.label}>Start Time</Text>
       <TextInput
@@ -81,13 +80,6 @@ export default function CreateShift() {
         <Picker.Item label="Licorice Making" value="Licorice Making" />
         <Picker.Item label="Licorice Selling" value="Licorice Selling" />
         <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
-      </Picker>
-
-      <Text style={styles.label}>Status</Text>
-      <Picker selectedValue={status} onValueChange={(value) => setStatus(value)} style={styles.picker}>
-        <Picker.Item label="Scheduled" value="scheduled" />
-        <Picker.Item label="Completed" value="completed" />
-        <Picker.Item label="Canceled" value="canceled" />
       </Picker>
 
       <Text style={styles.label}>Repeat</Text>
