@@ -63,7 +63,7 @@ export default function CreateShift() {
       }
     };
   
-    fetchEmployees();
+    fetchEmployees(jobTitle);
   }, [jobTitle]);
 
   const handleSubmit = async () => {
