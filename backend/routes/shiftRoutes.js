@@ -52,11 +52,23 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
     console.log("Create shift request received");
     try {
-        const shift = new Shift(req.body);
-        await shift.save();
-        res.status(201).json(shift);
+      const { startTime, endTime } = req.body;
+  
+      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  
+      if (!timeRegex.test(startTime)) {
+        return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
+      }
+  
+      if (!timeRegex.test(endTime)) {
+        return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
+      }
+  
+      const shift = new Shift(req.body);
+      await shift.save();
+      res.status(201).json(shift);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
 });
 

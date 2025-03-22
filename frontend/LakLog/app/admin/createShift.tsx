@@ -17,6 +17,8 @@ export default function CreateShift() {
   const [employees, setEmployees] = useState<{ _id: string; name: string }[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState("none");
   const { date: rawPrefillDate } = useLocalSearchParams();
+  const [startTimeError, setStartTimeError] = useState("");
+  const [endTimeError, setEndTimeError] = useState("");
 
   useEffect(() => {
     const resolvedDate = Array.isArray(rawPrefillDate) ? rawPrefillDate[0] : rawPrefillDate;
@@ -27,6 +29,8 @@ export default function CreateShift() {
       }
     }
   }, [rawPrefillDate]);
+
+  const validateTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
 
   useEffect(() => {
     const fetchEmployees = async (jobTitle?: string) => {
@@ -118,7 +122,9 @@ export default function CreateShift() {
     endTime.trim() &&
     location.trim() &&
     jobTitle.trim() &&
-    repeat.trim();
+    repeat.trim() &&
+    validateTime(startTime) &&
+    validateTime(endTime);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -139,10 +145,24 @@ export default function CreateShift() {
       )}
 
       <Text style={styles.label}>Start Time (Hour:Minute)</Text>
-      <TextInput style={styles.input} value={startTime} onChangeText={setStartTime} />
+      <TextInput
+        style={styles.input}
+        value={startTime}
+        onChangeText={(value) => {
+          setStartTime(value);
+          setStartTimeError(validateTime(value) ? "" : "Invalid time (HH:MM)");
+        }}/>
+      {startTimeError ? <Text style={styles.error}>{startTimeError}</Text> : null}
 
       <Text style={styles.label}>End Time (Hour:Minute)</Text>
-      <TextInput style={styles.input} value={endTime} onChangeText={setEndTime} />
+      <TextInput
+        style={styles.input}
+        value={endTime}
+        onChangeText={(value) => {
+          setEndTime(value);
+          setEndTimeError(validateTime(value) ? "" : "Invalid time (HH:MM)");
+        }}/>
+      {endTimeError ? <Text style={styles.error}>{endTimeError}</Text> : null}
 
       <Text style={styles.label}>Location</Text>
       <Picker selectedValue={location} onValueChange={setLocation} style={styles.picker}>
@@ -172,7 +192,7 @@ export default function CreateShift() {
         ))}
       </Picker>
 
-      <Text style={styles.label}>Repeat</Text>
+      <Text style={styles.label}>Repeat (Next 4 Weeks)</Text>
       <Picker selectedValue={repeat} onValueChange={setRepeat} style={styles.picker}>
         <Picker.Item label="None" value="" />
         <Picker.Item label="Daily" value="daily" />
@@ -224,4 +244,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
+  error: {
+    color: "red",
+    marginTop: 5,
+    fontSize: 13,
+  }
 });

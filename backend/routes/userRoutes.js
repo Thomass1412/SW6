@@ -5,7 +5,7 @@ const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
 
 // Get all employees (Admin only)
-router.get("/employees", async (req, res) => {
+router.get("/employees", verifyToken, checkAdmin, async (req, res) => {
     try {
       const { jobTitle } = req.query;
   
