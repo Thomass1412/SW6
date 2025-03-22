@@ -7,12 +7,21 @@ const { checkAdmin } = require("../middlewares/roleMiddleware");
 // Get all employees (Admin only)
 router.get("/employees", verifyToken, checkAdmin, async (req, res) => {
     try {
-        const users = await User.find({ role: "User" }, "-password");
-        res.json(users);
+      const { jobTitle } = req.query;
+  
+      let query = { role: "User" };
+  
+      if (jobTitle && jobTitle !== "None") {
+        query.jobTitle = { $in: [jobTitle] }; // This is key
+      }
+  
+      const users = await User.find(query, "-password");
+      res.json(users);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
-});
+  });
+  
 
 // Delete a user (Admin only)
 router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
