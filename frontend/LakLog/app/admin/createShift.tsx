@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
 import dayjs from "dayjs";
+import { useNavigation } from "@react-navigation/native";
 
 export default function CreateShift() {
   const [date, setDate] = useState(new Date());
@@ -19,6 +20,15 @@ export default function CreateShift() {
   const { date: rawPrefillDate } = useLocalSearchParams();
   const [startTimeError, setStartTimeError] = useState("");
   const [endTimeError, setEndTimeError] = useState("");
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Create Shift",
+      headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
+      headerTitleAlign: "center",
+    });
+  }, [navigation]);
 
   useEffect(() => {
     const resolvedDate = Array.isArray(rawPrefillDate) ? rawPrefillDate[0] : rawPrefillDate;
