@@ -51,7 +51,7 @@ export default function SpecificShift() {
       marginTop: 2,
     },
     sellText: {
-      color: "#000",
+      color: "#FF0000",
       textAlign: "center",
       marginTop: 20,
       textDecorationLine: "underline",
@@ -82,17 +82,24 @@ export default function SpecificShift() {
       </View>
 
       <SwipeButton
-        swipeSuccessThreshold={70}
+        swipeSuccessThreshold={75}
         height={55}
         width={280}
         title="Sign In"
         thumbIconComponent={() => (
           <Ionicons name="arrow-forward" size={24} color="#000" />
         )}
-        railBackgroundColor="#D9D9D9"
+        disabled={false}
+        disableResetOnTap={false}
+        disabledThumbIconBackgroundColor="D9D9D9"
+        disabledRailBackgroundColor="#BCBCBC"
+        disabledThumbIconBorderColor="D9D9D9"
+        railBackgroundColor="#F7CB8C"
         railBorderColor="#999"
-        railFillBackgroundColor="#F7CB8C"
-        railFillBorderColor="#000"
+        railFillBackgroundColor="#FFE8C7"
+        railFillBorderColor="#FFE8C7"
+        thumbIconBackgroundColor= "#FFDDAD"
+        thumbIconBorderColor="#FFDDAD"
         titleColor="#000"
         onSwipeSuccess={handleSwipeSuccess}
         shouldResetAfterSuccess={true}
