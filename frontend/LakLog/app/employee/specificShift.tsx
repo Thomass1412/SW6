@@ -18,26 +18,11 @@ export default function SpecificShift() {
       alignItems: "center",
       paddingTop: 50,
     },
-    heading: {
-      fontSize: 20,
-      fontWeight: "bold",
-      backgroundColor: "#F7CB8C",
-      width: "100%",
-      textAlign: "center",
-      paddingVertical: 15,
-      borderBottomWidth: 1,
-      borderColor: "#ccc",
-    },
     shiftBox: {
-      backgroundColor: "#FFF",
+      backgroundColor: "#FFF7E6",
       padding: 25,
-      borderRadius: 12,
       width: "85%",
       marginTop: 30,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
-      elevation: 3,
     },
     timeText: {
       fontSize: 22,
@@ -77,8 +62,6 @@ export default function SpecificShift() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>My Shift</Text>
-
       <View style={styles.shiftBox}>
         <Text style={styles.timeText}>{startTime} - {endTime}</Text>
         <Text style={styles.dateText}>{date}</Text>
