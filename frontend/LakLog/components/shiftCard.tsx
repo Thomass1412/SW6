@@ -1,19 +1,22 @@
-import { View, Text, StyleSheet } from "react-native";
-import { Shift } from "../types"; // Import the Shift type
+// shiftCard.tsx
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Shift } from "../types";
 
 interface ShiftCardProps {
   shift: Shift;
+  onPress?: () => void;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({ shift }) => {
+const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress }) => {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity onPress={onPress} style={styles.card}>
       <Text>
         <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
         <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
       </Text>
       <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -29,7 +32,11 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 2, 
     borderColor: "#000",
-  }
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default ShiftCard;
