@@ -11,24 +11,30 @@ interface ShiftCardProps {
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress }) => {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
-      <Text style={styles.title}>{shift.role}</Text>
-      <Text>{`${shift.startTime} - ${shift.endTime}`}</Text>
-      <Text>{shift.location}</Text>
+      <Text>
+        <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
+        <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
+      </Text>
+      <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFF3D9",
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
+    backgroundColor: "#FFDDAD",
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 2, 
+    borderColor: "#000",
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
 });
