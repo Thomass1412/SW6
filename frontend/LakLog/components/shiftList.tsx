@@ -20,7 +20,7 @@ const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
       pathname: "/employee/specificShift",
       params: {
         id: shift._id,
-        role: shift.role,
+        jobTitle: shift.jobTitle,
         location: shift.location,
         startTime: shift.startTime,
         endTime: shift.endTime,

@@ -4,7 +4,7 @@ import SwipeButton from "rn-swipe-button";
 import { Ionicons } from '@expo/vector-icons';
 
 export default function SpecificShift() {
-  const { id, startTime, endTime, date, location, role } = useLocalSearchParams();
+  const { id, startTime, endTime, date, location, jobTitle } = useLocalSearchParams();
 
   const handleSwipeSuccess = () => {
     console.log("✅ User signed in to shift:", id);
@@ -90,7 +90,7 @@ export default function SpecificShift() {
 
         <View style={styles.section}>
           <Text style={styles.label}>Shift Type</Text>
-          <Text style={styles.value}>{role}</Text>
+          <Text style={styles.value}>{jobTitle}</Text>
         </View>
 
         <TouchableOpacity>
