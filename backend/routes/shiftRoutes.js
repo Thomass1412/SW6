@@ -121,4 +121,48 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
     }
 });
 
+router.post("/sign-in", authenticateToken, async (req, res) => {
+    const { shiftId, location, timestamp } = req.body;
+    const userId = req.user.id;
+  
+    try {
+      const shift = await Shift.findById(shiftId);
+      if (!shift) return res.status(404).json({ error: "Shift not found" });
+  
+      const shiftStart = dayjs(`${shift.date}T${shift.startTime}`);
+      const now = dayjs(timestamp);
+  
+      const minutesBefore = shiftStart.diff(now, "minute");
+      if (minutesBefore > 10) {
+        return res.status(400).json({ error: "Too early to sign in." });
+      }
+  
+      const shiftCoords = await geocode(shift.location); // Your geocode helper
+      const distance = calculateDistanceMeters(
+        location.latitude,
+        location.longitude,
+        shiftCoords.lat,
+        shiftCoords.lng
+      );
+  
+      if (distance > 100) {
+        return res.status(400).json({ error: `Too far from shift location (${Math.round(distance)}m)` });
+      }
+  
+      // All good - log the sign-in
+      await ShiftLog.create({
+        user: userId,
+        shift: shiftId,
+        time: timestamp,
+        location,
+      });
+  
+      res.json({ message: "Successfully signed in!" });
+  
+    } catch (err) {
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  
+
 module.exports = router;

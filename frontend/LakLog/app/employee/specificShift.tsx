@@ -1,15 +1,93 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import SwipeButton from "rn-swipe-button";
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { useEffect, useState } from "react";
+import dayjs from 'dayjs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SpecificShift() {
   const { id, startTime, endTime, date, location, jobTitle } = useLocalSearchParams();
+  const [shiftCoords, setShiftCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isEligibleTime, setIsEligibleTime] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSwipeSuccess = () => {
-    console.log("✅ User signed in to shift:", id);
-    // Add sign-in logic here (e.g., API call, geofence check)
+  // Get location of shift
+  useEffect(() => {
+    const setup = async () => {
+      try {
+        const geo = await Location.geocodeAsync(location as string);
+        if (geo.length > 0) {
+          setShiftCoords({
+            latitude: geo[0].latitude,
+            longitude: geo[0].longitude,
+          });
+        }
+
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Location denied", "Cannot access your position.");
+          return;
+        }
+
+        const pos = await Location.getCurrentPositionAsync({});
+        setCurrentCoords({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+
+        // Time check
+        const shiftStartTime = dayjs(`${date}T${startTime}`);
+        const now = dayjs();
+        const diffInMinutes = shiftStartTime.diff(now, 'minute');
+        setIsEligibleTime(diffInMinutes <= 10 && diffInMinutes >= -30); // Allow within 10 min before until 30 min after
+      } catch (err) {
+        Alert.alert("Error", "Failed to get required data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    setup();
+  }, []);
+
+  const handleSwipeSuccess = async () => {
+    if (!currentCoords || !shiftCoords) {
+      Alert.alert("Location Error", "Missing coordinates.");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const response = await fetch("http://192.168.0.154:5000/shifts/sign-in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          shiftId: id,
+          location: currentCoords,
+          timestamp: new Date().toISOString()
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", result.message || "Signed in successfully");
+      } else {
+        Alert.alert("Error", result.error || "Sign-in failed");
+      }
+
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while signing in.");
+    }
   };
+
+  const swipeDisabled = loading || !currentCoords || !shiftCoords || !isEligibleTime;
+
 
   const styles = StyleSheet.create({
     container: {
@@ -89,7 +167,7 @@ export default function SpecificShift() {
         thumbIconComponent={() => (
           <Ionicons name="arrow-forward" size={24} color="#000" />
         )}
-        disabled={false}
+        disabled={swipeDisabled}
         disableResetOnTap={false}
         disabledThumbIconBackgroundColor="D9D9D9"
         disabledRailBackgroundColor="#BCBCBC"
