@@ -1,35 +1,36 @@
-import { View, Text, StyleSheet } from "react-native";
-import { Shift } from "../types"; // Import the Shift type
+// shiftCard.tsx
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Shift } from "../types";
 
 interface ShiftCardProps {
   shift: Shift;
+  onPress?: () => void;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({ shift }) => {
+const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress }) => {
   return (
-    <View style={styles.card}>
-      <Text>
-        <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
-        <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
-      </Text>
-      <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
-    </View>
+    <TouchableOpacity onPress={onPress} style={styles.card}>
+      <Text style={styles.title}>{shift.role}</Text>
+      <Text>{`${shift.startTime} - ${shift.endTime}`}</Text>
+      <Text>{shift.location}</Text>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFDDAD",
-    padding: 10,
-    marginVertical: 10,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 2, 
-    borderColor: "#000",
-  }
+    backgroundColor: "#FFF3D9",
+    padding: 15,
+    marginVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 });
 
 export default ShiftCard;
