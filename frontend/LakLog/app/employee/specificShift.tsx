@@ -7,24 +7,29 @@ import { useEffect, useState } from "react";
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+type Coords = { latitude: number; longitude: number };
+
+type ShiftStatus = "scheduled" | "signed-in" | "completed";
+
 export default function SpecificShift() {
-  const { id, startTime, endTime, date, location, jobTitle } = useLocalSearchParams();
-  const [shiftCoords, setShiftCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [currentCoords, setCurrentCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [isEligibleTime, setIsEligibleTime] = useState(false);
+  const { id } = useLocalSearchParams();
+  const [shift, setShift] = useState<any>(null);
+  const [shiftCoords, setShiftCoords] = useState<Coords | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<Coords | null>(null);
+  const [eligibleTime, setEligibleTime] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Get location of shift
   useEffect(() => {
     const setup = async () => {
       try {
-        const geo = await Location.geocodeAsync(location as string);
-        if (geo.length > 0) {
-          setShiftCoords({
-            latitude: geo[0].latitude,
-            longitude: geo[0].longitude,
-          });
-        }
+
+        const token = await AsyncStorage.getItem("accessToken");
+        const res = await fetch(`http://192.168.0.154:5000/shifts/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setShift(data);
+        console.log("🔄 Loaded shift:", data);
 
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
@@ -32,19 +37,27 @@ export default function SpecificShift() {
           return;
         }
 
-        const pos = await Location.getCurrentPositionAsync({});
-        setCurrentCoords({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
+        const geo = await Location.geocodeAsync(data.location);
+        if (geo.length > 0) {
+          setShiftCoords({ latitude: geo[0].latitude, longitude: geo[0].longitude });
+        }
 
-        // Time check
-        const shiftStartTime = dayjs(`${date}T${startTime}`);
+        const pos = await Location.getCurrentPositionAsync({});
+        setCurrentCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+
         const now = dayjs();
-        const diffInMinutes = shiftStartTime.diff(now, 'minute');
-        setIsEligibleTime(diffInMinutes <= 10 && diffInMinutes >= -30); // Allow within 10 min before until 30 min after
+        console.log("🕓 Now:", now.format());
+        const dateStr = dayjs(data.date).format("YYYY-MM-DD");
+        const refTime = dayjs(`${dateStr}T${data.status === 'scheduled' ? data.startTime : data.endTime}`);
+        console.log("🕒 Ref Time:", refTime.format());
+        const diff = refTime.diff(now, 'minute');
+        console.log("⏳ Diff (minutes):", diff);
+        const validTime = data.status === 'scheduled' ? (diff <= 100 && diff >= -100) : Math.abs(diff) <= 100;
+        setEligibleTime(validTime);
+        console.log("✔️ Eligible:", validTime)
       } catch (err) {
-        Alert.alert("Error", "Failed to get required data.");
+        console.error("Setup error:", err);
+        Alert.alert("Error", "Failed to load shift data.");
       } finally {
         setLoading(false);
       }
@@ -52,106 +65,57 @@ export default function SpecificShift() {
     setup();
   }, []);
 
-  const handleSwipeSuccess = async () => {
-    if (!currentCoords || !shiftCoords) {
-      Alert.alert("Location Error", "Missing coordinates.");
-      return;
-    }
+  const handleSwipe = async () => {
+    if (!currentCoords) return;
+    const token = await AsyncStorage.getItem("accessToken");
+    const endpoint = shift.status === 'scheduled' ? 'sign-in' : 'complete';
 
     try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const response = await fetch("http://192.168.0.154:5000/shifts/sign-in", {
-        method: "POST",
+      const res = await fetch(`http://192.168.0.154:5000/shifts/${endpoint}`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           shiftId: id,
           location: currentCoords,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Success", result.message || "Signed in successfully");
+      const result = await res.json();
+      if (res.ok) {
+        Alert.alert("✅ Success", result.message);
+        setShift({ ...shift, status: shift.status === 'scheduled' ? 'signed-in' : 'completed' });
       } else {
-        Alert.alert("Error", result.error || "Sign-in failed");
+        Alert.alert("❌ Error", result.error);
       }
-
-    } catch (error) {
-      Alert.alert("Error", "An error occurred while signing in.");
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to update shift.");
     }
   };
 
-  const swipeDisabled = loading || !currentCoords || !shiftCoords || !isEligibleTime;
+  if (!shift || loading) return <Text>Loading...</Text>;
 
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#FFF7E6",
-      alignItems: "center",
-      paddingTop: 50,
-    },
-    shiftBox: {
-      backgroundColor: "#FFF7E6",
-      padding: 25,
-      width: "85%",
-      marginTop: 30,
-    },
-    timeText: {
-      fontSize: 22,
-      fontWeight: "bold",
-      textAlign: "center",
-      marginBottom: 5,
-    },
-    dateText: {
-      fontSize: 16,
-      textAlign: "center",
-      color: "#333",
-      marginBottom: 20,
-    },
-    section: {
-      borderTopWidth: 1,
-      borderColor: "#ccc",
-      paddingVertical: 10,
-    },
-    label: {
-      fontSize: 14,
-      color: "#888",
-    },
-    value: {
-      fontSize: 16,
-      color: "#000",
-      marginTop: 2,
-    },
-    sellText: {
-      color: "#FF0000",
-      textAlign: "center",
-      marginTop: 20,
-      textDecorationLine: "underline",
-      fontWeight: "500",
-    },
-  });
-  
+  const swipeTitle = shift.status === 'scheduled' ? 'Sign In' : 'Complete Shift';
+  const swipeDisabled = !eligibleTime || !currentCoords || !shiftCoords || shift.status === 'completed';
 
   return (
     <View style={styles.container}>
       <View style={styles.shiftBox}>
-        <Text style={styles.timeText}>{startTime} - {endTime}</Text>
-        <Text style={styles.dateText}>{date}</Text>
+        <Text style={styles.timeText}>{shift.startTime} - {shift.endTime}</Text>
+        <Text style={styles.dateText}>{dayjs(shift.date).format('DD-MM-YYYY')}</Text>
 
         <View style={styles.section}>
           <Text style={styles.label}>Lokation</Text>
-          <Text style={styles.value}>{location}</Text>
+          <Text style={styles.value}>{shift.location}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.label}>Shift Type</Text>
-          <Text style={styles.value}>{jobTitle}</Text>
+          <Text style={styles.value}>{shift.jobTitle}</Text>
         </View>
 
         <TouchableOpacity>
@@ -163,7 +127,7 @@ export default function SpecificShift() {
         swipeSuccessThreshold={75}
         height={55}
         width={280}
-        title="Sign In"
+        title={swipeTitle}
         thumbIconComponent={() => (
           <Ionicons name="arrow-forward" size={24} color="#000" />
         )}
@@ -176,12 +140,60 @@ export default function SpecificShift() {
         railBorderColor="#999"
         railFillBackgroundColor="#FFE8C7"
         railFillBorderColor="#FFE8C7"
-        thumbIconBackgroundColor= "#FFDDAD"
+        thumbIconBackgroundColor="#FFDDAD"
         thumbIconBorderColor="#FFDDAD"
         titleColor="#000"
-        onSwipeSuccess={handleSwipeSuccess}
+        onSwipeSuccess={handleSwipe}
         shouldResetAfterSuccess={true}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFF7E6",
+    alignItems: "center",
+    paddingTop: 50,
+  },
+  shiftBox: {
+    backgroundColor: "#FFF7E6",
+    padding: 25,
+    width: "85%",
+    marginTop: 30,
+  },
+  timeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  dateText: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#333",
+    marginBottom: 20,
+  },
+  section: {
+    borderTopWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: 10,
+  },
+  label: {
+    fontSize: 14,
+    color: "#888",
+  },
+  value: {
+    fontSize: 16,
+    color: "#000",
+    marginTop: 2,
+  },
+  sellText: {
+    color: "#FF0000",
+    textAlign: "center",
+    marginTop: 20,
+    textDecorationLine: "underline",
+    fontWeight: "500",
+  },
+});
