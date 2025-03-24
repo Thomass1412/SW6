@@ -139,11 +139,11 @@ router.post("/sign-in", verifyToken, async (req, res) => {
     const now = dayjs(timestamp);
 
     const minutesBefore = shiftStart.diff(now, "minute");
-    if (minutesBefore > 10) {
+    if (minutesBefore > 100) {
       return res.status(400).json({ error: "Too early to sign in." });
     }
 
-    if (minutesBefore < -30) {
+    if (minutesBefore < -300) {
       return res.status(400).json({ error: "Too late to sign in." });
     }
 
