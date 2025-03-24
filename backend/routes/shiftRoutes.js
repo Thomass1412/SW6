@@ -121,7 +121,7 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
     }
 });
 
-router.post("/sign-in", authenticateToken, async (req, res) => {
+router.post("/sign-in", verifyToken, async (req, res) => {
     const { shiftId, location, timestamp } = req.body;
     const userId = req.user.id;
   
