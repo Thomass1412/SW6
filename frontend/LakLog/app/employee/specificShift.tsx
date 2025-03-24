@@ -18,32 +18,44 @@ export default function SpecificShift() {
   useEffect(() => {
     const setup = async () => {
       try {
+        // 🔐 Request permissions first
+        console.log("🔐 Requesting location permissions...");
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Location denied", "Cannot access your position.");
+          return;
+        }
+  
+        // ✅ Now it's safe to geocode
+        console.log("📍 Geocoding shift location...");
         const geo = await Location.geocodeAsync(location as string);
         if (geo.length > 0) {
           setShiftCoords({
             latitude: geo[0].latitude,
             longitude: geo[0].longitude,
           });
+          console.log("✅ Shift coordinates:", geo[0]);
+        } else {
+          throw new Error("No geocode results found");
         }
-
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert("Location denied", "Cannot access your position.");
-          return;
-        }
-
+  
+        // 📡 Get current position
+        console.log("📡 Getting current location...");
         const pos = await Location.getCurrentPositionAsync({});
         setCurrentCoords({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
-
-        // Time check
+        console.log("Current coordinates:", pos.coords);
+  
+        // 🕒 Time check
         const shiftStartTime = dayjs(`${date}T${startTime}`);
         const now = dayjs();
         const diffInMinutes = shiftStartTime.diff(now, 'minute');
-        setIsEligibleTime(diffInMinutes <= 10 && diffInMinutes >= -30); // Allow within 10 min before until 30 min after
-      } catch (err) {
+        setIsEligibleTime(diffInMinutes <= 10 && diffInMinutes >= -30);
+        console.log("Time diff (min):", diffInMinutes);
+      } catch (err: any) {
+        console.error("Setup error:", err.message || err);
         Alert.alert("Error", "Failed to get required data.");
       } finally {
         setLoading(false);
