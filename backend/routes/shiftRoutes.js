@@ -5,6 +5,7 @@ const Shift = require("../models/shift");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
 const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); // Assuming helpers
+const dayjs = require("dayjs");
 
 // Get all shifts (accessible to all authenticated users)
 router.get("/", verifyToken, async (req, res) => {
@@ -129,11 +130,6 @@ router.post("/sign-in", verifyToken, async (req, res) => {
   try {
     const shift = await Shift.findById(shiftId);
     if (!shift) return res.status(404).json({ error: "Shift not found" });
-
-    // Optional: Restrict sign-in to assigned employee
-    if (shift.employee && shift.employee.toString() !== userId) {
-      return res.status(403).json({ error: "You are not assigned to this shift." });
-    }
 
     if (shift.status !== "scheduled") {
       return res.status(400).json({ error: `Shift already ${shift.status}` });
