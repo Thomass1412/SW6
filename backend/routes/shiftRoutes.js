@@ -4,6 +4,7 @@ const User = require("../models/user");
 const Shift = require("../models/shift");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
+const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); // Assuming helpers
 
 // Get all shifts (accessible to all authenticated users)
 router.get("/", verifyToken, async (req, res) => {
@@ -122,47 +123,123 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
 });
 
 router.post("/sign-in", verifyToken, async (req, res) => {
-    const { shiftId, location, timestamp } = req.body;
-    const userId = req.user.id;
-  
-    try {
-      const shift = await Shift.findById(shiftId);
-      if (!shift) return res.status(404).json({ error: "Shift not found" });
-  
-      const shiftStart = dayjs(`${shift.date}T${shift.startTime}`);
-      const now = dayjs(timestamp);
-  
-      const minutesBefore = shiftStart.diff(now, "minute");
-      if (minutesBefore > 10) {
-        return res.status(400).json({ error: "Too early to sign in." });
-      }
-  
-      const shiftCoords = await geocode(shift.location); // Your geocode helper
-      const distance = calculateDistanceMeters(
-        location.latitude,
-        location.longitude,
-        shiftCoords.lat,
-        shiftCoords.lng
-      );
-  
-      if (distance > 100) {
-        return res.status(400).json({ error: `Too far from shift location (${Math.round(distance)}m)` });
-      }
-  
-      // All good - log the sign-in
-      await ShiftLog.create({
-        user: userId,
-        shift: shiftId,
-        time: timestamp,
-        location,
-      });
-  
-      res.json({ message: "Successfully signed in!" });
-  
-    } catch (err) {
-      res.status(500).json({ error: "Server error" });
+  const { shiftId, location, timestamp } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const shift = await Shift.findById(shiftId);
+    if (!shift) return res.status(404).json({ error: "Shift not found" });
+
+    // Optional: Restrict sign-in to assigned employee
+    if (shift.employee && shift.employee.toString() !== userId) {
+      return res.status(403).json({ error: "You are not assigned to this shift." });
     }
-  });
-  
+
+    if (shift.status !== "scheduled") {
+      return res.status(400).json({ error: `Shift already ${shift.status}` });
+    }
+
+    const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
+    const now = dayjs(timestamp);
+
+    const minutesBefore = shiftStart.diff(now, "minute");
+    if (minutesBefore > 10) {
+      return res.status(400).json({ error: "Too early to sign in." });
+    }
+
+    if (minutesBefore < -30) {
+      return res.status(400).json({ error: "Too late to sign in." });
+    }
+
+    const shiftCoords = await geocode(shift.location); // Ex: returns { lat, lng }
+    const distance = calculateDistanceMeters(
+      location.latitude,
+      location.longitude,
+      shiftCoords.lat,
+      shiftCoords.lng
+    );
+
+    if (distance > 100) {
+      return res.status(400).json({ error: `Too far from shift location (${Math.round(distance)}m)` });
+    }
+
+    // ✅ Update shift
+    shift.status = "signed-in";
+    shift.employee = userId; // Optional: assign employee on sign-in
+    await shift.save();
+
+    res.json({ message: "Successfully signed in", shift });
+
+  } catch (err) {
+    console.error("Sign-in error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+router.post("/complete", verifyToken, async (req, res) => {
+  const { shiftId, location, timestamp } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const shift = await Shift.findById(shiftId);
+    if (!shift) return res.status(404).json({ error: "Shift not found" });
+
+    const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
+    const now = dayjs(timestamp);
+    const diff = Math.abs(shiftEnd.diff(now, "minute"));
+
+    if (diff > 10) {
+      return res.status(400).json({ error: "You can only complete the shift within 10 minutes of end time." });
+    }
+
+    const shiftCoords = await geocode(shift.location);
+    const distance = calculateDistanceMeters(
+      location.latitude,
+      location.longitude,
+      shiftCoords.lat,
+      shiftCoords.lng
+    );
+
+    if (distance > 100) {
+      return res.status(400).json({ error: `Too far from shift location (${Math.round(distance)}m)` });
+    }
+
+    shift.status = "completed";
+    await shift.save();
+
+    await ShiftLog.create({
+      user: userId,
+      shift: shiftId,
+      time: timestamp,
+      location,
+      type: "completed"
+    });
+
+    res.json({ message: "Shift successfully completed." });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get a shift by ID (accessible to all authenticated users) 
+router.get("/:id", verifyToken, async (req, res) => {
+  try {
+    const shift = await Shift.findById(req.params.id).populate("employee", "name role");
+    if (!shift) {
+      return res.status(404).json({ error: "Shift not found" });
+    }
+
+    res.json(shift);
+  } catch (err) {
+    console.error("Error fetching shift by ID:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;
