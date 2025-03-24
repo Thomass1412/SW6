@@ -9,27 +9,25 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); 
 
   const handleLogin = async () => {
     setLoading(true);
+    setError(""); 
     try {
-
       // Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
       const idToken = await userCredential.user.getIdToken();
       console.log("Got ID Token:", idToken);
 
-  
       const response = await fetch("http://192.168.0.154:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
 
-
       const textResponse = await response.text();
-
       const data = JSON.parse(textResponse);
 
       if (response.ok) {
@@ -38,10 +36,10 @@ export default function LoginScreen() {
 
         router.replace(data.redirect);
       } else {
-        alert(data.error || "Login failed");
+        setError(data.error || "Login failed"); // Set error message
       }
     } catch (error) {
-      alert("Something went wrong");
+      setError("Something went wrong"); // Set error message
     } finally {
       setLoading(false);
     }
@@ -68,6 +66,7 @@ export default function LoginScreen() {
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Logging in..." : "Sign in"}</Text>
       </TouchableOpacity>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null} {/* Display error message */}
     </View>
   );
 }
@@ -104,5 +103,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#000000",
     fontSize: 18,
+  },
+  errorText: {
+    color: "red",
+    marginTop: 10,
   },
 });

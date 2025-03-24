@@ -7,8 +7,6 @@ import { useEffect, useState } from "react";
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = "http://192.168.0.154:5000";
-
 type Coords = { latitude: number; longitude: number };
 
 type ShiftStatus = "scheduled" | "signed-in" | "completed";
@@ -26,7 +24,7 @@ export default function SpecificShift() {
       try {
 
         const token = await AsyncStorage.getItem("accessToken");
-        const res = await fetch(`${API_BASE}/shifts/${id}`, {
+        const res = await fetch(`http://192.168.0.154:5000/shifts/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -58,7 +56,7 @@ export default function SpecificShift() {
         setEligibleTime(validTime);
         console.log("✔️ Eligible:", validTime)
       } catch (err) {
-        console.error("❌ Setup error:", err);
+        console.error("Setup error:", err);
         Alert.alert("Error", "Failed to load shift data.");
       } finally {
         setLoading(false);
@@ -73,7 +71,7 @@ export default function SpecificShift() {
     const endpoint = shift.status === 'scheduled' ? 'sign-in' : 'complete';
 
     try {
-      const res = await fetch(`${API_BASE}/shifts/${endpoint}`, {
+      const res = await fetch(`http://192.168.0.154:5000/shifts/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
