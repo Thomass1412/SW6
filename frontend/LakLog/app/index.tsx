@@ -36,10 +36,10 @@ export default function LoginScreen() {
 
         router.replace(data.redirect);
       } else {
-        setError(data.error || "Login failed"); // Set error message
+        setError(data.error || "Login failed"); 
       }
     } catch (error) {
-      setError("Something went wrong"); // Set error message
+      setError("Something went wrong"); 
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export default function LoginScreen() {
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Logging in..." : "Sign in"}</Text>
       </TouchableOpacity>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null} {/* Display error message */}
+      {error ? <Text style={styles.errorText}>{String(error)}</Text> : null}
     </View>
   );
 }

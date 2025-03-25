@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import dayjs from 'dayjs';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CustomCalendarProps {
   markedDates?: { [date: string]: any };
@@ -48,13 +49,13 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
         </Text>
       ),
       headerLeft: () => (
-        <TouchableOpacity onPress={goToPreviousMonth} style={{ marginLeft: 25 }}>
-          <Text style={{ fontSize: 30 }}>◀</Text>
+        <TouchableOpacity onPress={goToPreviousMonth} style={{ marginLeft: 35 }}>
+          <Ionicons name="arrow-back" size={34} color="#000" />
         </TouchableOpacity>
       ),
       headerRight: () => (
-        <TouchableOpacity onPress={goToNextMonth} style={{ marginRight: 25 }}>
-          <Text style={{ fontSize: 30 }}>▶</Text>
+        <TouchableOpacity onPress={goToNextMonth} style={{ marginRight: 35 }}>
+          <Ionicons name="arrow-forward" size={34} color="#000" />
         </TouchableOpacity>
       ),
     });

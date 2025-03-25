@@ -86,13 +86,13 @@ export default function DailySchedule() {
         </Text>
       ),
       headerLeft: () => (
-        <TouchableOpacity onPress={goToPreviousDay} style={{ marginLeft: 25 }}>
-          <Text style={{ fontSize: 30 }}>◀</Text>
+        <TouchableOpacity onPress={goToPreviousDay} style={{ marginLeft: 35 }}>
+          <Ionicons name="arrow-back" size={34} color="#000" />
         </TouchableOpacity>
       ),
       headerRight: () => (
-        <TouchableOpacity onPress={goToNextDay} style={{ marginRight: 25 }}>
-          <Text style={{ fontSize: 30 }}>▶</Text>
+        <TouchableOpacity onPress={goToNextDay} style={{ marginRight: 35 }}>
+          <Ionicons name="arrow-forward" size={34} color="#000" />
         </TouchableOpacity>
       ),
     });
