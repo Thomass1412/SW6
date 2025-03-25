@@ -67,12 +67,6 @@ const MonthlySchedule = () => {
         markedDates={markedDates}
         onDateSelect={handleDateSelect}
       />
-      {selectedDate && (
-        <Button
-          title="Go to Daily Schedule"
-          onPress={() => router.push(`/employee/(tabs)/dailySchedule?date=${selectedDate}`)}
-        />
-      )}
     </View>
   );
 };
@@ -81,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFAE8',
   },
 });
 
