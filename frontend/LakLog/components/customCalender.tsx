@@ -64,21 +64,36 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
   return (
     <View style={{ flex: 1 }}>
       <Calendar
-        key={selectedDate.toString()} // Forces re-render when month changes
+        key={selectedDate.toString()}
         onDayPress={handleDayPress}
         current={selectedDate.format('YYYY-MM-DD')}
-        markedDates={{
-          ...markedDates,
-          [selectedDate.format('YYYY-MM-DD')]: { selected: true, selectedColor: '#F7CB8C' },
-        }}
-        hideArrows={true} 
+        markedDates={(() => {
+          console.log("Marked Dates:", markedDates);
+          const finalMarkedDates = { ...markedDates };
+          const selectedDateKey = selectedDate.format('YYYY-MM-DD');
+  
+          if (finalMarkedDates[selectedDateKey]) {
+            finalMarkedDates[selectedDateKey] = {
+              ...finalMarkedDates[selectedDateKey],
+              selected: true,
+              selectedColor: '#F7CB8C',
+            };
+          } else {
+            finalMarkedDates[selectedDateKey] = {
+              selected: true,
+              selectedColor: '#F7CB8C',
+            };
+          }
+  
+          return finalMarkedDates;
+        })()}
+        hideArrows={true}
         disableSwipeMonths={true}
-        renderHeader={() => null} 
+        renderHeader={() => null}
         style={styles.calendar}
         theme={{
           backgroundColor: '#FFFAE8',
           calendarBackground: '#FFFAE8',
-          selectedDayBackgroundColor: 'blue',
           selectedDayTextColor: 'black',
           todayTextColor: 'red',
           dayTextColor: 'black',
@@ -86,10 +101,10 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
           textDayFontWeight: 'regular',
           textMonthFontWeight: 'bold',
           textDayHeaderFontWeight: 'bold',
-          textSectionTitleColor: 'black', 
-          textDayFontSize: 18, 
-          textMonthFontSize: 13, 
-          textDayHeaderFontSize: 15.5, 
+          textSectionTitleColor: 'black',
+          textDayFontSize: 18,
+          textMonthFontSize: 13,
+          textDayHeaderFontSize: 15.5,
         }}
       />
     </View>

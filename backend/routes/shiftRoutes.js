@@ -86,42 +86,49 @@ router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
 });
 
 router.get("/my-shifts", verifyToken, async (req, res) => {
-    try {
+  try {
+    const { date, start, end } = req.query;
 
-        // Extract date from query params
-        const date = req.query.date;  
-        if (!date) {
-            console.log("Date parameter missing in request");
-            return res.status(400).json({ error: "Date parameter is required" });
-        }
-
-        // Find the logged-in user based on Firebase email
-        const user = await User.findOne({ email: req.user.email });
-        if (!user) {
-            console.log("User not found in DB");
-            return res.status(404).json({ error: "User not found" });
-        }
-
-
-        //  Convert date string to Date object
-        const startOfDay = new Date(date);
-        startOfDay.setUTCHours(0, 0, 0, 0);
-
-        const endOfDay = new Date(date);
-        endOfDay.setUTCHours(23, 59, 59, 999);
-
-        // Query MongoDB for shifts on the selected date
-        const shifts = await Shift.find({
-            employee: user._id,
-            date: { $gte: startOfDay, $lte: endOfDay },
-        }).populate("employee", "name email");
-
-        res.json(shifts);
-    } catch (error) {
-        console.error("Error fetching shifts:", error);
-        res.status(500).json({ error: error.message });
+    // Ensure at least one valid query method
+    if (!date && (!start || !end)) {
+      return res.status(400).json({ error: "Provide either ?date= or ?start=&end=" });
     }
+
+    // Find user based on Firebase email
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Prepare date filter for the MongoDB query
+    let dateFilter = {};
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(date);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      dateFilter = { date: { $gte: startOfDay, $lte: endOfDay } };
+    } else if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      dateFilter = { date: { $gte: startDate, $lte: endDate } };
+    }
+
+    // Query for shifts matching employee and date filter
+    const shifts = await Shift.find({
+      employee: user._id,
+      ...dateFilter,
+    }).populate("employee", "name email");
+
+    res.json(shifts);
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
+
 
 router.post("/sign-in", verifyToken, async (req, res) => {
   const { shiftId, location, timestamp } = req.body;
@@ -159,7 +166,7 @@ router.post("/sign-in", verifyToken, async (req, res) => {
       return res.status(400).json({ error: `Too far from shift location (${Math.round(distance)}m)` });
     }
 
-    // ✅ Update shift
+    // Update shift
     shift.status = "signed-in";
     shift.employee = userId; // Optional: assign employee on sign-in
     await shift.save();
