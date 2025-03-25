@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import CustomCalendar from '../../../components/customCalender';
+import CustomButton from '../../../components/CustomButton';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -66,6 +67,12 @@ const MonthlySchedule = () => {
       <CustomCalendar
         markedDates={markedDates}
         onDateSelect={handleDateSelect}
+      />
+      <CustomButton 
+        onPress={() => router.push(`/employee/createUnavailability`)}  
+        iconName="add" 
+        text="New Unavailability"
+        position={{ bottom: 30, right: 30 }}
       />
     </View>
   );
