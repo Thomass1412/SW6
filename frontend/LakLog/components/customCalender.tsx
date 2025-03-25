@@ -8,9 +8,10 @@ import { Ionicons } from '@expo/vector-icons';
 interface CustomCalendarProps {
   markedDates?: { [date: string]: any };
   onDateSelect?: (date: string) => void;
+  onMonthChange?: (month: dayjs.Dayjs) => void;
 }
 
-const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDateSelect }) => {
+const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDateSelect, onMonthChange }) => {
   const { date } = useLocalSearchParams();
   const navigation = useNavigation();
 
@@ -31,11 +32,19 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
 
   // Handle month navigation
   const goToPreviousMonth = () => {
-    setSelectedDate((prev) => prev.subtract(1, 'month'));
+    setSelectedDate((prev) => {
+      const newDate = prev.subtract(1, 'month');
+      onMonthChange?.(newDate);
+      return newDate;
+    });
   };
-
+  
   const goToNextMonth = () => {
-    setSelectedDate((prev) => prev.add(1, 'month'));
+    setSelectedDate((prev) => {
+      const newDate = prev.add(1, 'month');
+      onMonthChange?.(newDate);
+      return newDate;
+    });
   };
 
 

@@ -30,36 +30,35 @@ const MonthlySchedule = () => {
     router.push(`/employee/(tabs)/dailySchedule?date=${date}`);
   };
 
-  useEffect(() => {
-    const fetchShifts = async () => {
-      try {
-        const token = await AsyncStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No token found!");
-          return;
-        }
-
-        const monthStart = dayjs().startOf('month').format('YYYY-MM-DD');
-        const monthEnd = dayjs().endOf('month').format('YYYY-MM-DD');
-
-        const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        const data = await response.json();
-
-        // Assuming each shift has a `date` in YYYY-MM-DD
-        const marked = getMarkedDatesFromShifts(data);
-        setMarkedDates(marked);
-      } catch (err) {
-        console.error('Failed to fetch shifts:', err);
+  const fetchShiftsForMonth = async (date: dayjs.Dayjs) => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No token found!");
+        return;
       }
-    };
+  
+      const monthStart = date.startOf('month').format('YYYY-MM-DD');
+      const monthEnd = date.endOf('month').format('YYYY-MM-DD');
+  
+      const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
+      const data = await response.json();
+      const marked = getMarkedDatesFromShifts(data);
+      setMarkedDates(marked);
+    } catch (err) {
+      console.error('Failed to fetch shifts:', err);
+    }
+  };
 
-    fetchShifts();
+  useEffect(() => {
+    fetchShiftsForMonth(dayjs());
   }, []);
 
   return (
@@ -67,6 +66,7 @@ const MonthlySchedule = () => {
       <CustomCalendar
         markedDates={markedDates}
         onDateSelect={handleDateSelect}
+        onMonthChange={fetchShiftsForMonth}
       />
       <CustomButton 
         onPress={() => router.push(`/employee/createUnavailability`)}  
