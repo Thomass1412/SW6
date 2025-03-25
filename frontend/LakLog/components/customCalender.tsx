@@ -67,26 +67,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
         key={selectedDate.toString()}
         onDayPress={handleDayPress}
         current={selectedDate.format('YYYY-MM-DD')}
-        markedDates={(() => {
-          console.log("Marked Dates:", markedDates);
-          const finalMarkedDates = { ...markedDates };
-          const selectedDateKey = selectedDate.format('YYYY-MM-DD');
-  
-          if (finalMarkedDates[selectedDateKey]) {
-            finalMarkedDates[selectedDateKey] = {
-              ...finalMarkedDates[selectedDateKey],
-              selected: true,
-              selectedColor: '#F7CB8C',
-            };
-          } else {
-            finalMarkedDates[selectedDateKey] = {
-              selected: true,
-              selectedColor: '#F7CB8C',
-            };
-          }
-  
-          return finalMarkedDates;
-        })()}
+        markedDates={markedDates}
         hideArrows={true}
         disableSwipeMonths={true}
         renderHeader={() => null}
@@ -95,7 +76,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
           backgroundColor: '#FFFAE8',
           calendarBackground: '#FFFAE8',
           selectedDayTextColor: 'black',
-          todayTextColor: 'red',
+          todayTextColor: '#FF9500',
           dayTextColor: 'black',
           monthTextColor: 'black',
           textDayFontWeight: 'regular',

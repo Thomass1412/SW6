@@ -13,7 +13,7 @@ const getMarkedDatesFromShifts = (shifts: { date: string }[]) => {
     const dateKey = dayjs(shift.date).format('YYYY-MM-DD'); 
     result[dateKey] = {
       marked: true,
-      dotColor: '#F7CB8C',
+      dotColor: '#FF9500',
     };
   });
   return result;
