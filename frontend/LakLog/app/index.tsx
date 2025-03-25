@@ -27,8 +27,7 @@ export default function LoginScreen() {
         body: JSON.stringify({ idToken }),
       });
 
-      const textResponse = await response.text();
-      const data = JSON.parse(textResponse);
+      const data = await response.json();
 
       if (response.ok) {
         await AsyncStorage.setItem("accessToken", data.accessToken);
@@ -39,7 +38,11 @@ export default function LoginScreen() {
         setError(data.error || "Login failed"); 
       }
     } catch (error) {
-      setError("Something went wrong"); 
+      if ((error as { code: string }).code === "auth/invalid-credential") {
+        setError("Invalid email or password");
+      } else {
+        setError("Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
