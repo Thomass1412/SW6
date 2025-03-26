@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-// Helper: convert shift dates to markedDates
+// Helper: convert shift dates to markedDates move to utils
 const getMarkedDatesFromShifts = (shifts: { date: string }[]) => {
   const result: { [date: string]: any } = {};
   shifts.forEach(shift => {
