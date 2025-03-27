@@ -6,16 +6,29 @@ import { Shift } from "../types";
 interface ShiftCardProps {
   shift: Shift;
   onPress?: () => void;
+  isAdmin: boolean;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress }) => {
+const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
   return (
     <TouchableOpacity onPress={onPress} style={styles.card}>
-      <Text>
-        <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
-        <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
-      </Text>
-      <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
+      {isAdmin ? (
+        <>
+          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+            <Text>{shift.startTime} - {shift.endTime} </Text>
+            <Text> {shift.jobTitle}</Text>
+          </Text>
+          <Text style={{ fontSize: 15 }}>{shift.employee_id}</Text>
+        </>
+      ) : (
+        <>
+          <Text>
+            <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
+            <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
+          </Text>
+          <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 };

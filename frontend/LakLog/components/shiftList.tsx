@@ -35,7 +35,7 @@ const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
         data={sortedShifts}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <ShiftCard shift={item} onPress={() => handleShiftPress(item)} />
+          <ShiftCard shift={item} onPress={() => handleShiftPress(item)} isAdmin={true} />
         )}
       />
     </View>
