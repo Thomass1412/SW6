@@ -38,9 +38,10 @@ export default function LoginScreen() {
         setError(data.error || "Login failed"); 
       }
     } catch (error) {
-      if ((error as { code: string }).code === "auth/invalid-credential") {
+      if ((error as { code: string }).code === "auth/invalid-credential" || (error as { code: string }).code === "auth/invalid-email") {
         setError("Invalid email or password");
       } else {
+        console.error(error);
         setError("Something went wrong");
       }
     } finally {
