@@ -18,7 +18,7 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
             <Text>{shift.startTime} - {shift.endTime} </Text>
             <Text> {shift.jobTitle}</Text>
           </Text>
-          <Text style={{ fontSize: 15 }}>{shift.employee_id}</Text>
+          <Text style={{ fontSize: 15 }}>{shift.employee?.name ? `${shift.employee.name}` : "Unassigned"}</Text>
         </>
       ) : (
         <>

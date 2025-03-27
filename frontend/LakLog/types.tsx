@@ -1,5 +1,4 @@
 export interface Shift {
-    employee_id: string;
     _id: string;
     date: string;
     role: string;
@@ -7,5 +6,10 @@ export interface Shift {
     startTime: string;
     endTime: string;
     jobTitle: string;
+    employee?: {
+      _id: string;
+      name: string;
+      email: string;
+    };
   }
   
