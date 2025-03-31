@@ -12,10 +12,7 @@ export default function CreateShift() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [location, setLocation] = useState("None");
-  const [jobTitle, setJobTitle] = useState("None");
   const [repeat, setRepeat] = useState("none");
- const [selectedEmployee, setSelectedEmployee] = useState("none");
   const { date: rawPrefillDate } = useLocalSearchParams();
   const [startTimeError, setStartTimeError] = useState("");
   const [endTimeError, setEndTimeError] = useState("");
@@ -45,7 +42,6 @@ export default function CreateShift() {
 
   const handleSubmit = async () => {
     const shiftData = {
-      ...(selectedEmployee !== "none" && { employee: selectedEmployee }),
       date: date.toISOString(),
       startTime,
       endTime,
@@ -71,7 +67,10 @@ export default function CreateShift() {
 
       const result = await response.json();
       if (response.ok) {
-        Alert.alert("Success", "Shift created successfully");
+        Alert.alert("Success", "Unavailability created successfully");
+        setStartTime("");
+        setEndTime("");
+        setRepeat("none");
         router.back();
       } else {
         Alert.alert("Error", result.error || "Something went wrong");
@@ -81,10 +80,6 @@ export default function CreateShift() {
     }
   };
 
-  const handleJobTitleChange = (title: string) => {
-    setJobTitle(title);
-    setSelectedEmployee("none");
-  };
 
   const showDatepicker = () => setShowDatePicker(true);
 
@@ -92,11 +87,9 @@ export default function CreateShift() {
     date &&
     startTime.trim() &&
     endTime.trim() &&
-    location.trim() &&
-    jobTitle.trim() &&
-    repeat.trim() &&
     validateTime(startTime) &&
     validateTime(endTime);
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

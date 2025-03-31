@@ -112,7 +112,10 @@ export default function CreateShift() {
 
       const result = await response.json();
       if (response.ok) {
-        Alert.alert("Success", "Shift created successfully");
+        Alert.alert("Success", "Unavailability created successfully");
+        setStartTime("");
+        setEndTime("");
+        setRepeat("none");
         router.back();
       } else {
         Alert.alert("Error", result.error || "Something went wrong");
