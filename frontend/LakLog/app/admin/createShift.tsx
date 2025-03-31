@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, Switch } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
 
@@ -21,6 +21,8 @@ export default function CreateShift() {
   const [startTimeError, setStartTimeError] = useState("");
   const [endTimeError, setEndTimeError] = useState("");
   const navigation = useNavigation();
+  const router = useRouter();
+
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -110,7 +112,11 @@ export default function CreateShift() {
 
       const result = await response.json();
       if (response.ok) {
-        Alert.alert("Success", "Shift created successfully");
+        Alert.alert("Success", "Unavailability created successfully");
+        setStartTime("");
+        setEndTime("");
+        setRepeat("none");
+        router.back();
       } else {
         Alert.alert("Error", result.error || "Something went wrong");
       }
@@ -202,14 +208,15 @@ export default function CreateShift() {
         ))}
       </Picker>
 
-      <Text style={styles.label}>Repeat (Next 4 Weeks)</Text>
-      <Picker selectedValue={repeat} onValueChange={setRepeat} style={styles.picker}>
-        <Picker.Item label="None" value="" />
-        <Picker.Item label="Daily" value="daily" />
-        <Picker.Item label="Weekly" value="weekly" />
-        <Picker.Item label="Bi-Weekly" value="bi-weekly" />
-        <Picker.Item label="Monthly" value="monthly" />
-      </Picker>
+      <Text style={styles.label}>Repeat Weekly for 4 Weeks</Text>
+      <View style={styles.switchContainer}>
+      <Switch
+        value={repeat === "weekly"}
+        onValueChange={(value) => setRepeat(value ? "weekly" : "")}
+        trackColor={{ false: "#ccc", true: "#F7CB8C" }}
+        thumbColor={repeat === "weekly" ? "#FF9900" : "#f4f3f4"}/>
+        <Text>{repeat === "weekly" ? "Yes" : "No"}</Text>
+      </View>
 
       <TouchableOpacity
         style={[styles.button, { opacity: isFormValid ? 1 : 0.5 }]}
@@ -258,5 +265,10 @@ const styles = StyleSheet.create({
     color: "red",
     marginTop: 5,
     fontSize: 13,
-  }
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
 });

@@ -6,5 +6,11 @@ export interface Shift {
     startTime: string;
     endTime: string;
     jobTitle: string;
+    status: string,
+    employee?: {
+      _id: string;
+      name: string;
+      email: string;
+    };
   }
   

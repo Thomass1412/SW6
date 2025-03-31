@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState, useEffect, useCallback, useMemo } fro
 import { Text, TouchableOpacity, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import ShiftList from "../../../components/shiftList";
+import CustomButton from '../../../components/CustomButton';
 import dayjs from 'dayjs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +11,7 @@ export default function DailySchedule() {
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastFetchedDate, setLastFetchedDate] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter();
   const navigation = useNavigation();
   const { date } = useLocalSearchParams();
@@ -19,6 +21,18 @@ export default function DailySchedule() {
     return dayjs(date ? String(date) : dayjs().format('YYYY-MM-DD'));
   }, [date]);
 
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const role = await AsyncStorage.getItem("userRole"); 
+        setIsAdmin(role === "user");
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+      }
+    };
+  
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     const fetchShifts = async () => {
@@ -141,12 +155,14 @@ export default function DailySchedule() {
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
-        <ShiftList shifts={shifts} />
+        <ShiftList shifts={shifts} isAdmin={isAdmin} />
       </View>
-      <TouchableOpacity style={styles.floatingButton} onPress={() => alert('This takes you to unavailability page')}>
-        <Ionicons name="add" size={30} color="#000" />
-        <Text style={styles.floatingButtonText}>Unavailability</Text>
-      </TouchableOpacity>
+      <CustomButton 
+        onPress={() => router.push(`/employee/createUnavailability?date=${selectedDate.format("YYYY-MM-DD")}`)}  
+        iconName="add" 
+        text="New Unavailability"
+        position={{ bottom: 30, right: 30 }}
+        />
     </View>
   );
 }

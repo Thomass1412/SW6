@@ -52,26 +52,150 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
 
 // Create a shift (Admin only)
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
-    console.log("Create shift request received");
-    try {
-      const { startTime, endTime } = req.body;
-  
-      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-  
-      if (!timeRegex.test(startTime)) {
-        return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
-      }
-  
-      if (!timeRegex.test(endTime)) {
-        return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
-      }
-  
-      const shift = new Shift(req.body);
-      await shift.save();
-      res.status(201).json(shift);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+  console.log("Create shift request received");
+  try {
+    const { startTime, endTime, repeat, date } = req.body;
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
     }
+
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
+    }
+
+    const start = dayjs(`2023-01-01T${startTime}`);
+    const end = dayjs(`2023-01-01T${endTime}`);
+
+    if (!end.isAfter(start)) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    // Create the initial shift
+    const baseShift = new Shift(req.body);
+    await baseShift.save();
+
+    const createdShifts = [baseShift];
+
+    // Repeat for next 3 weeks if requested
+    if (repeat === "weekly" && date) {
+      for (let i = 1; i < 4; i++) {
+        const newDate = dayjs(date).add(i, "week").toISOString();
+
+        const repeatShift = new Shift({
+          ...req.body,
+          date: newDate,
+        });
+
+        await repeatShift.save();
+        createdShifts.push(repeatShift);
+      }
+    }
+
+    res.status(201).json(createdShifts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/new-unavailability", verifyToken, async (req, res) => {
+  console.log("Create unavailability request received");
+
+  try {
+    const { startTime, endTime, repeat, date } = req.body;
+
+    // 🔍 Lookup user from MongoDB using Firebase email
+    const firebaseEmail = req.user.email;
+    const user = await User.findOne({ email: firebaseEmail });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const userId = user._id;
+
+    // Validate time
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      return res.status(400).json({ error: "Invalid time format. Use HH:MM (24-hour)." });
+    }
+
+    const start = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${startTime}`);
+    const end = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${endTime}`);
+    if (!end.isAfter(start)) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    // Check for overlapping shifts
+    const existingShifts = await Shift.find({
+      employee: userId,
+      date: {
+        $gte: dayjs(date).startOf("day").toDate(),
+        $lte: dayjs(date).endOf("day").toDate(),
+      }
+    });
+
+    const hasOverlap = existingShifts.some(shift => {
+      const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
+      const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
+      return start.isBefore(shiftEnd) && end.isAfter(shiftStart);
+    });
+
+    if (hasOverlap) {
+      return res.status(400).json({ error: "You already have a shift that overlaps with this unavailability." });
+    }
+
+    // Create initial unavailability
+    const base = new Shift({
+      employee: userId,
+      date,
+      startTime,
+      endTime,
+      status: "unavailability"
+    });
+    await base.save();
+
+    const unavailabilities = [base];
+
+    // Repeat if requested
+    if (repeat === "weekly") {
+      for (let i = 1; i < 4; i++) {
+        const newDate = dayjs(date).add(i, "week").toDate();
+
+        const overlapping = await Shift.find({
+          employee: userId,
+          date: {
+            $gte: dayjs(newDate).startOf("day").toDate(),
+            $lte: dayjs(newDate).endOf("day").toDate(),
+          }
+        });
+
+        const conflict = overlapping.some(shift => {
+          const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
+          const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
+          return dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${startTime}`).isBefore(shiftEnd) &&
+                 dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${endTime}`).isAfter(shiftStart);
+        });
+
+        if (!conflict) {
+          const repeatBlock = new Shift({
+            employee: userId,
+            date: newDate,
+            startTime,
+            endTime,
+            status: "unavailability"
+          });
+          await repeatBlock.save();
+          unavailabilities.push(repeatBlock);
+        }
+      }
+    }
+
+    res.status(201).json(unavailabilities);
+  } catch (error) {
+    console.error("Unavailability creation failed:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // Delete a shift (Admin only)
@@ -241,8 +365,6 @@ router.get("/:id", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-module.exports = router;
 
 
 module.exports = router;

@@ -44,7 +44,7 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-// Login Route
+
 router.post("/login", async (req, res) => {
     try {
         const { idToken } = req.body;
@@ -67,8 +67,8 @@ router.post("/login", async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Generate Session Token (Optionally)
-        const sessionToken = idToken; // OR generate your own JWT if needed.
+        // Generate Session Token 
+        const sessionToken = idToken; 
 
         res.json({
             message: "Login successful",
