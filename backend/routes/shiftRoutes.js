@@ -151,7 +151,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
       date,
       startTime,
       endTime,
-      status: "scheduled"
+      status: "unavailability"
     });
     await base.save();
 
@@ -183,7 +183,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
             date: newDate,
             startTime,
             endTime,
-            status: "scheduled"
+            status: "unavailability"
           });
           await repeatBlock.save();
           unavailabilities.push(repeatBlock);

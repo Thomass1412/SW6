@@ -1,4 +1,3 @@
-// shiftCard.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Shift } from "../types";
@@ -10,26 +9,38 @@ interface ShiftCardProps {
 }
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
+  const isUnavailability = shift.status === "unavailability";
+  console.log(shift.status)
+  // Don't render unavailability shifts for admins
+  if (isAdmin && isUnavailability) return null;
+
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+    <>
       {isAdmin ? (
-        <>
+        <TouchableOpacity onPress={onPress} style={styles.card}>
           <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-            <Text>{shift.startTime} - {shift.endTime} </Text>
-            <Text> {shift.jobTitle}</Text>
+            {shift.startTime} - {shift.endTime} {shift.jobTitle}
           </Text>
-          <Text style={{ fontSize: 15 }}>{shift.employee?.name ? `${shift.employee.name}` : "Unassigned"}</Text>
-        </>
+          <Text style={{ fontSize: 15 }}>
+            {shift.employee?.name ? shift.employee.name : "Unassigned"}
+          </Text>
+        </TouchableOpacity>
+      ) : isUnavailability ? (
+        <View style={styles.card}>
+          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+            {shift.startTime} - {shift.endTime} 
+          </Text>
+          <Text style={{ fontSize: 15 }}>Unavailability</Text>
+        </View>
       ) : (
-        <>
-          <Text>
-            <Text style={{ fontWeight: "bold", fontSize: 15 }}>{shift.startTime} - {shift.endTime}</Text>
-            <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
+        <TouchableOpacity onPress={onPress} style={styles.card}>
+          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+            {shift.startTime} - {shift.endTime} {shift.jobTitle}
           </Text>
-          <Text style={{ fontSize: 15 }} >Lokation: {shift.location}</Text>
-        </>
+          <Text style={{ fontSize: 15 }}>Lokation: {shift.location}</Text>
+        </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </>
   );
 };
 
@@ -43,7 +54,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    borderWidth: 2, 
+    borderWidth: 2,
     borderColor: "#000",
   },
   title: {

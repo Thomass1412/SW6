@@ -69,7 +69,6 @@ export default function DailySchedule() {
     const fetchUserRole = async () => {
       try {
         const role = await AsyncStorage.getItem("userRole"); 
-        console.log("👤 User role:", role);
         setIsAdmin(role === "admin");
       } catch (error) {
         console.error("Error fetching user role:", error);

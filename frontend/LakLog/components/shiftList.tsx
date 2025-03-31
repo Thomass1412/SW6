@@ -6,9 +6,10 @@ import { Shift } from "../types";
 
 interface ShiftListProps {
   shifts: Shift[];
+  isAdmin: boolean;
 }
 
-const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
+const ShiftList: React.FC<ShiftListProps> = ({ shifts, isAdmin }) => {
   const router = useRouter();
 
   const sortedShifts = [...shifts].sort((a, b) =>
@@ -35,7 +36,7 @@ const ShiftList: React.FC<ShiftListProps> = ({ shifts }) => {
         data={sortedShifts}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <ShiftCard shift={item} onPress={() => handleShiftPress(item)} isAdmin={true} />
+          <ShiftCard shift={item} onPress={() => handleShiftPress(item)} isAdmin={isAdmin} />
         )}
       />
     </View>
