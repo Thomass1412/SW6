@@ -105,21 +105,23 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
 
   try {
     const { startTime, endTime, repeat, date } = req.body;
-    const userId = req.user.id;
 
-    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-    if (!timeRegex.test(startTime)) {
-      return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
+    // 🔍 Lookup user from MongoDB using Firebase email
+    const firebaseEmail = req.user.email;
+    const user = await User.findOne({ email: firebaseEmail });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+    const userId = user._id;
 
-    if (!timeRegex.test(endTime)) {
-      return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
+    // Validate time
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      return res.status(400).json({ error: "Invalid time format. Use HH:MM (24-hour)." });
     }
 
     const start = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${startTime}`);
     const end = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${endTime}`);
-
     if (!end.isAfter(start)) {
       return res.status(400).json({ error: "End time must be after start time." });
     }
@@ -136,7 +138,6 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
     const hasOverlap = existingShifts.some(shift => {
       const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
       const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
-
       return start.isBefore(shiftEnd) && end.isAfter(shiftStart);
     });
 
@@ -144,26 +145,24 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "You already have a shift that overlaps with this unavailability." });
     }
 
-    const unavailabilities = [];
-
-    // Create base unavailability
+    // Create initial unavailability
     const base = new Shift({
       employee: userId,
       date,
       startTime,
       endTime,
-      status: "unavailability"
+      status: "scheduled"
     });
-
     await base.save();
-    unavailabilities.push(base);
 
-    // Repeat if needed
+    const unavailabilities = [base];
+
+    // Repeat if requested
     if (repeat === "weekly") {
       for (let i = 1; i < 4; i++) {
         const newDate = dayjs(date).add(i, "week").toDate();
 
-        const overlapping = await Shift.findOne({
+        const overlapping = await Shift.find({
           employee: userId,
           date: {
             $gte: dayjs(newDate).startOf("day").toDate(),
@@ -171,21 +170,21 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
           }
         });
 
-        const overlap = overlapping && dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${startTime}`).isBefore(
-          dayjs(`${dayjs(overlapping.date).format("YYYY-MM-DD")}T${overlapping.endTime}`)
-        ) && dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${endTime}`).isAfter(
-          dayjs(`${dayjs(overlapping.date).format("YYYY-MM-DD")}T${overlapping.startTime}`)
-        );
+        const conflict = overlapping.some(shift => {
+          const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
+          const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
+          return dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${startTime}`).isBefore(shiftEnd) &&
+                 dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${endTime}`).isAfter(shiftStart);
+        });
 
-        if (!overlap) {
+        if (!conflict) {
           const repeatBlock = new Shift({
             employee: userId,
             date: newDate,
             startTime,
             endTime,
-            status: "unavailability"
+            status: "scheduled"
           });
-
           await repeatBlock.save();
           unavailabilities.push(repeatBlock);
         }
@@ -193,7 +192,6 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
     }
 
     res.status(201).json(unavailabilities);
-
   } catch (error) {
     console.error("Unavailability creation failed:", error);
     res.status(500).json({ error: "Server error" });
