@@ -207,10 +207,11 @@ export default function CreateShift() {
 
       <Text style={styles.label}>Repeat Weekly for 4 Weeks</Text>
       <View style={styles.switchContainer}>
-        <Switch
-          value={repeat === "weekly"}
-          onValueChange={(value) => setRepeat(value ? "weekly" : "")}
-        />
+      <Switch
+        value={repeat === "weekly"}
+        onValueChange={(value) => setRepeat(value ? "weekly" : "")}
+        trackColor={{ false: "#ccc", true: "#F7CB8C" }}
+        thumbColor={repeat === "weekly" ? "#FF9900" : "#f4f3f4"}/>
         <Text>{repeat === "weekly" ? "Yes" : "No"}</Text>
       </View>
 
