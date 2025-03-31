@@ -65,6 +65,13 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
       if (!timeRegex.test(endTime)) {
         return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
       }
+
+      const start = dayjs(`2023-01-01T${startTime}`);
+      const end = dayjs(`2023-01-01T${endTime}`);
+
+      if (!end.isAfter(start)) {
+        return res.status(400).json({ error: "End time must be after start time." });
+      }
   
       const shift = new Shift(req.body);
       await shift.save();

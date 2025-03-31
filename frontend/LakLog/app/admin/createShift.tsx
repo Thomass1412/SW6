@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert,
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
 
@@ -21,6 +21,8 @@ export default function CreateShift() {
   const [startTimeError, setStartTimeError] = useState("");
   const [endTimeError, setEndTimeError] = useState("");
   const navigation = useNavigation();
+  const router = useRouter();
+
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -111,6 +113,7 @@ export default function CreateShift() {
       const result = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Shift created successfully");
+        router.back();
       } else {
         Alert.alert("Error", result.error || "Something went wrong");
       }
