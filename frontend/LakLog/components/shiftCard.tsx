@@ -10,7 +10,6 @@ interface ShiftCardProps {
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
   const isUnavailability = shift.status === "unavailability";
-  console.log(shift.status)
   // Don't render unavailability shifts for admins
   if (isAdmin && isUnavailability) return null;
 
@@ -18,25 +17,33 @@ const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
     <>
       {isAdmin ? (
         <TouchableOpacity onPress={onPress} style={styles.card}>
-          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-            {shift.startTime} - {shift.endTime} {shift.jobTitle}
-          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+              {shift.startTime} - {shift.endTime}
+            </Text>
+            <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
+          </View>
           <Text style={{ fontSize: 15 }}>
             {shift.employee?.name ? shift.employee.name : "Unassigned"}
           </Text>
         </TouchableOpacity>
       ) : isUnavailability ? (
         <View style={styles.card}>
-          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-            {shift.startTime} - {shift.endTime} 
-          </Text>
-          <Text style={{ fontSize: 15 }}>Unavailability</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+              {shift.startTime} - {shift.endTime}
+            </Text>
+            <Text style={{ fontSize: 15 }}> Unavailability</Text>
+          </View>
         </View>
       ) : (
         <TouchableOpacity onPress={onPress} style={styles.card}>
-          <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-            {shift.startTime} - {shift.endTime} {shift.jobTitle}
-          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            <Text style={{ fontWeight: "bold", fontSize: 15 }}>
+              {shift.startTime} - {shift.endTime}
+            </Text>
+            <Text style={{ fontSize: 15 }}> {shift.jobTitle}</Text>
+          </View>
           <Text style={{ fontSize: 15 }}>Lokation: {shift.location}</Text>
         </TouchableOpacity>
       )}
