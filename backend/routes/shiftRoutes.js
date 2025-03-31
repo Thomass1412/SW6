@@ -52,35 +52,53 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
 
 // Create a shift (Admin only)
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
-    console.log("Create shift request received");
-    try {
-      const { startTime, endTime } = req.body;
-  
-      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-  
-      if (!timeRegex.test(startTime)) {
-        return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
-      }
-  
-      if (!timeRegex.test(endTime)) {
-        return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
-      }
+  console.log("Create shift request received");
+  try {
+    const { startTime, endTime, repeat, date } = req.body;
 
-      const start = dayjs(`2023-01-01T${startTime}`);
-      const end = dayjs(`2023-01-01T${endTime}`);
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-      if (!end.isAfter(start)) {
-        return res.status(400).json({ error: "End time must be after start time." });
-      }
-  
-      const shift = new Shift(req.body);
-      await shift.save();
-      res.status(201).json(shift);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
     }
-});
 
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
+    }
+
+    const start = dayjs(`2023-01-01T${startTime}`);
+    const end = dayjs(`2023-01-01T${endTime}`);
+
+    if (!end.isAfter(start)) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    // Create the initial shift
+    const baseShift = new Shift(req.body);
+    await baseShift.save();
+
+    const createdShifts = [baseShift];
+
+    // Repeat for next 3 weeks if requested
+    if (repeat === "weekly" && date) {
+      for (let i = 1; i < 4; i++) {
+        const newDate = dayjs(date).add(i, "week").toISOString();
+
+        const repeatShift = new Shift({
+          ...req.body,
+          date: newDate,
+        });
+
+        await repeatShift.save();
+        createdShifts.push(repeatShift);
+      }
+    }
+
+    res.status(201).json(createdShifts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 // Delete a shift (Admin only)
 router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
     try {

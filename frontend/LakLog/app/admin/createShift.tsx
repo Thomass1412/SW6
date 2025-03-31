@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, Switch } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -205,14 +205,14 @@ export default function CreateShift() {
         ))}
       </Picker>
 
-      <Text style={styles.label}>Repeat (Next 4 Weeks)</Text>
-      <Picker selectedValue={repeat} onValueChange={setRepeat} style={styles.picker}>
-        <Picker.Item label="None" value="" />
-        <Picker.Item label="Daily" value="daily" />
-        <Picker.Item label="Weekly" value="weekly" />
-        <Picker.Item label="Bi-Weekly" value="bi-weekly" />
-        <Picker.Item label="Monthly" value="monthly" />
-      </Picker>
+      <Text style={styles.label}>Repeat Weekly for 4 Weeks</Text>
+      <View style={styles.switchContainer}>
+        <Switch
+          value={repeat === "weekly"}
+          onValueChange={(value) => setRepeat(value ? "weekly" : "")}
+        />
+        <Text>{repeat === "weekly" ? "Yes" : "No"}</Text>
+      </View>
 
       <TouchableOpacity
         style={[styles.button, { opacity: isFormValid ? 1 : 0.5 }]}
@@ -261,5 +261,10 @@ const styles = StyleSheet.create({
     color: "red",
     marginTop: 5,
     fontSize: 13,
-  }
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
 });
