@@ -49,8 +49,6 @@ export default function CreateShift() {
       date: date.toISOString(),
       startTime,
       endTime,
-      location,
-      jobTitle,
       status: "scheduled",
       repeat,
     };
@@ -62,7 +60,7 @@ export default function CreateShift() {
         return;
       }
 
-      const response = await fetch("http://192.168.0.154:5000/shifts/create", {
+      const response = await fetch("http://192.168.0.154:5000/shifts/new-unavailability", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -138,22 +136,6 @@ export default function CreateShift() {
         }}/>
       {endTimeError ? <Text style={styles.error}>{endTimeError}</Text> : null}
 
-      <Text style={styles.label}>Location</Text>
-      <Picker selectedValue={location} onValueChange={setLocation} style={styles.picker}>
-        <Picker.Item label="None" value="" />
-        <Picker.Item label="Lokation A" value="Lokation A" />
-        <Picker.Item label="Lokation B" value="Lokation B" />
-        <Picker.Item label="Lokation C" value="Lokation C" />
-      </Picker>
-
-      <Text style={styles.label}>Job Title</Text>
-      <Picker selectedValue={jobTitle} onValueChange={handleJobTitleChange} style={styles.picker}>
-      <Picker.Item label="None" value="None" />
-        <Picker.Item label="Licorice Making" value="Licorice Making" />
-        <Picker.Item label="Licorice Selling" value="Licorice Selling" />
-        <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
-      </Picker>
-
       <Text style={styles.label}>Repeat Weekly for 4 Weeks</Text>
       <View style={styles.switchContainer}>
       <Switch
@@ -168,7 +150,7 @@ export default function CreateShift() {
         style={[styles.button, { opacity: isFormValid ? 1 : 0.5 }]}
         onPress={handleSubmit}
         disabled={!isFormValid}>
-        <Text style={styles.buttonText}>Create Shift</Text>
+        <Text style={styles.buttonText}>Submit Unavailability</Text>
       </TouchableOpacity>
     </ScrollView>
   );

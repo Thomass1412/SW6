@@ -99,6 +99,111 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post("/new-unavailability", verifyToken, async (req, res) => {
+  console.log("Create unavailability request received");
+
+  try {
+    const { startTime, endTime, repeat, date } = req.body;
+    const userId = req.user.id;
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ error: "Invalid startTime format. Use HH:MM (24-hour)." });
+    }
+
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({ error: "Invalid endTime format. Use HH:MM (24-hour)." });
+    }
+
+    const start = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${startTime}`);
+    const end = dayjs(`${dayjs(date).format("YYYY-MM-DD")}T${endTime}`);
+
+    if (!end.isAfter(start)) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    // Check for overlapping shifts
+    const existingShifts = await Shift.find({
+      employee: userId,
+      date: {
+        $gte: dayjs(date).startOf("day").toDate(),
+        $lte: dayjs(date).endOf("day").toDate(),
+      }
+    });
+
+    const hasOverlap = existingShifts.some(shift => {
+      const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
+      const shiftEnd = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.endTime}`);
+
+      return start.isBefore(shiftEnd) && end.isAfter(shiftStart);
+    });
+
+    if (hasOverlap) {
+      return res.status(400).json({ error: "You already have a shift that overlaps with this unavailability." });
+    }
+
+    const unavailabilities = [];
+
+    // Create base unavailability
+    const base = new Shift({
+      employee: userId,
+      date,
+      startTime,
+      endTime,
+      location: " ", // explicitly blank
+      jobTitle: " ",
+      status: "scheduled"
+    });
+
+    await base.save();
+    unavailabilities.push(base);
+
+    // Repeat if needed
+    if (repeat === "weekly") {
+      for (let i = 1; i < 4; i++) {
+        const newDate = dayjs(date).add(i, "week").toDate();
+
+        const overlapping = await Shift.findOne({
+          employee: userId,
+          date: {
+            $gte: dayjs(newDate).startOf("day").toDate(),
+            $lte: dayjs(newDate).endOf("day").toDate(),
+          }
+        });
+
+        const overlap = overlapping && dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${startTime}`).isBefore(
+          dayjs(`${dayjs(overlapping.date).format("YYYY-MM-DD")}T${overlapping.endTime}`)
+        ) && dayjs(`${dayjs(newDate).format("YYYY-MM-DD")}T${endTime}`).isAfter(
+          dayjs(`${dayjs(overlapping.date).format("YYYY-MM-DD")}T${overlapping.startTime}`)
+        );
+
+        if (!overlap) {
+          const repeatBlock = new Shift({
+            employee: userId,
+            date: newDate,
+            startTime,
+            endTime,
+            location: " ",
+            jobTitle: " ",
+            status: "scheduled"
+          });
+
+          await repeatBlock.save();
+          unavailabilities.push(repeatBlock);
+        }
+      }
+    }
+
+    res.status(201).json(unavailabilities);
+
+  } catch (error) {
+    console.error("Unavailability creation failed:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Delete a shift (Admin only)
 router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
     try {
@@ -266,8 +371,6 @@ router.get("/:id", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-module.exports = router;
 
 
 module.exports = router;
