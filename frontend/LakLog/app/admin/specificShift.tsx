@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
-import { Text, View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import {TouchableOpacity, Text, View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
@@ -51,6 +51,8 @@ export default function AdminShiftDetails() {
     );
   }
 
+  const handleSubmit = async () => {Alert.alert("hello")}
+
   return (
     <View style={styles.container}>
       <View style={styles.shiftBox}>
@@ -79,6 +81,14 @@ export default function AdminShiftDetails() {
           </View>
         )}
       </View>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Create Shift</Text>
+      </TouchableOpacity>
+      <TouchableOpacity>
+          <Text style={styles.deleteText}>Delete Shift</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -132,5 +142,24 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#888',
+  },
+  deleteText: {
+    color: "#FF0000",
+    textAlign: "center",
+    fontSize: 18,
+    marginTop: 20,
+    textDecorationLine: "underline",
+    fontWeight: "500",
+  },button: {
+    backgroundColor: "#F7CB8C",
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
 });
