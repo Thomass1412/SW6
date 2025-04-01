@@ -17,8 +17,9 @@ const ShiftList: React.FC<ShiftListProps> = ({ shifts, isAdmin }) => {
   );
 
   const handleShiftPress = (shift: Shift) => {
+    const path = isAdmin ? "/admin/specificShift" : "/employee/specificShift";
     router.push({
-      pathname: "/employee/specificShift",
+      pathname: path,
       params: {
         id: shift._id,
         jobTitle: shift.jobTitle,
