@@ -116,7 +116,7 @@ export default function DailySchedule() {
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
-        <ShiftList shifts={shifts} isAdmin={isAdmin} />
+        <ShiftList shifts={shifts} isAdmin={true} />
       </View>
       <CustomButton 
         onPress={() => router.push(`/admin/createShift?date=${selectedDate.format("YYYY-MM-DD")}`)}  
