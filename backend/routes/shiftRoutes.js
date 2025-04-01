@@ -106,7 +106,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
   try {
     const { startTime, endTime, repeat, date } = req.body;
 
-    // 🔍 Lookup user from MongoDB using Firebase email
+    // Lookup user from MongoDB using Firebase email
     const firebaseEmail = req.user.email;
     const user = await User.findOne({ email: firebaseEmail });
     if (!user) {
