@@ -51,7 +51,7 @@ export default function AdminShiftDetails() {
     );
   }
 
-  const handleSubmit = async () => {Alert.alert("hello")}
+  const handleSubmit = async () => {Alert.alert("This takes you to the update shift page")}
 
   return (
     <View style={styles.container}>
@@ -84,10 +84,46 @@ export default function AdminShiftDetails() {
       <TouchableOpacity
         style={styles.button}
         onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Create Shift</Text>
+        <Text style={styles.buttonText}>Update Shift</Text>
       </TouchableOpacity>
-      <TouchableOpacity>
-          <Text style={styles.deleteText}>Delete Shift</Text>
+      <TouchableOpacity
+        onPress={() => {
+            Alert.alert(
+            "Delete Shift",
+            "Are you sure you want to delete this shift?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                    try {
+                    const token = await AsyncStorage.getItem("accessToken");
+                    const res = await fetch(`http://192.168.0.154:5000/shifts/delete/${shift._id}`, {
+                        method: "DELETE",
+                        headers: {
+                        Authorization: `Bearer ${token}`,
+                        },
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        Alert.alert("Deleted", result.message);
+                        navigation.goBack(); 
+                    } else {
+                        Alert.alert("Error", result.error || "Failed to delete shift.");
+                    }
+                    } catch (err) {
+                    console.error(err);
+                    Alert.alert("Error", "Network error while deleting shift.");
+                    }
+                },
+                },
+            ]
+            );
+        }}
+        >
+        <Text style={styles.deleteText}>Delete Shift</Text>
       </TouchableOpacity>
     </View>
   );
@@ -146,11 +182,12 @@ const styles = StyleSheet.create({
   deleteText: {
     color: "#FF0000",
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 15,
     marginTop: 20,
     textDecorationLine: "underline",
     fontWeight: "500",
-  },button: {
+  },
+  button: {
     backgroundColor: "#F7CB8C",
     padding: 15,
     borderRadius: 5,

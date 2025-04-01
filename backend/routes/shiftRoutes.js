@@ -240,7 +240,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
 });
 
 // Delete a shift (Admin only)
-router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
+router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
     try {
         const shift = await Shift.findByIdAndDelete(req.params.id);
         if (!shift) return res.status(404).json({ message: "Shift not found" });
