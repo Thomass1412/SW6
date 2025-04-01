@@ -54,7 +54,7 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
   console.log("Create shift request received");
   try {
-    const { startTime, endTime, repeat, date } = req.body;
+    const { startTime, endTime, repeat, date, employee  } = req.body;
 
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -73,6 +73,26 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
       return res.status(400).json({ error: "End time must be after start time." });
     }
 
+    if (employee) {
+      const overlapping = await Shift.findOne({
+        employee,
+        date,
+        $or: [
+          {
+            $and: [
+              { startTime: { $lte: endTime } },
+              { endTime: { $gte: startTime } },
+            ],
+          },
+        ],
+      });
+
+      if (overlapping) {
+        return res.status(400).json({
+          error: "This employee already has a shift that overlaps with the selected time.",
+        });
+      }
+    }
     // Create the initial shift
     const baseShift = new Shift(req.body);
     await baseShift.save();
@@ -83,6 +103,27 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
     if (repeat === "weekly" && date) {
       for (let i = 1; i < 4; i++) {
         const newDate = dayjs(date).add(i, "week").toISOString();
+
+        if (employee) {
+          const overlapping = await Shift.findOne({
+            employee,
+            date,
+            $or: [
+              {
+                $and: [
+                  { startTime: { $lte: endTime } },
+                  { endTime: { $gte: startTime } },
+                ],
+              },
+            ],
+          });
+    
+          if (overlapping) {
+            return res.status(400).json({
+              error: "This employee already has a shift that overlaps with the selected time.",
+            });
+          }
+        }
 
         const repeatShift = new Shift({
           ...req.body,
