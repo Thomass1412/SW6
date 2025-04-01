@@ -46,7 +46,7 @@ export default function SpecificShift() {
         setCurrentCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
 
         const now = dayjs();
-        console.log("🕓 Now:", now.format());
+        console.log("Now:", now.format());
         const dateStr = dayjs(data.date).format("YYYY-MM-DD");
         const refTime = dayjs(`${dateStr}T${data.status === 'scheduled' ? data.startTime : data.endTime}`);
         console.log("🕒 Ref Time:", refTime.format());
@@ -86,10 +86,10 @@ export default function SpecificShift() {
 
       const result = await res.json();
       if (res.ok) {
-        Alert.alert("✅ Success", result.message);
+        Alert.alert("Success", result.message);
         setShift({ ...shift, status: shift.status === 'scheduled' ? 'signed-in' : 'completed' });
       } else {
-        Alert.alert("❌ Error", result.error);
+        Alert.alert("Error", result.error);
       }
     } catch (err) {
       console.error(err);
@@ -133,9 +133,9 @@ export default function SpecificShift() {
         )}
         disabled={swipeDisabled}
         disableResetOnTap={false}
-        disabledThumbIconBackgroundColor="D9D9D9"
+        disabledThumbIconBackgroundColor="#D9D9D9"
         disabledRailBackgroundColor="#BCBCBC"
-        disabledThumbIconBorderColor="D9D9D9"
+        disabledThumbIconBorderColor="#D9D9D9"
         railBackgroundColor="#F7CB8C"
         railBorderColor="#999"
         railFillBackgroundColor="#FFE8C7"
