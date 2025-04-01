@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import SwipeButton from "rn-swipe-button";
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,6 +18,16 @@ export default function SpecificShift() {
   const [currentCoords, setCurrentCoords] = useState<Coords | null>(null);
   const [eligibleTime, setEligibleTime] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+      navigation.setOptions({
+        title: "My Shift",
+        headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
+        headerTitleAlign: "center",
+      });
+    }, [navigation]);
+  
 
   useEffect(() => {
     const setup = async () => {
