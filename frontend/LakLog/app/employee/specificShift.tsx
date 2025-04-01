@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import SwipeButton from "rn-swipe-button";
 import { Ionicons } from '@expo/vector-icons';
@@ -107,7 +107,14 @@ export default function SpecificShift() {
     }
   };
 
-  if (!shift || loading) return <Text>Loading...</Text>;
+  if (!shift || loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#F7CB8C" />
+        <Text style={styles.loadingText}>Loading shift details...</Text>
+      </View>
+    );
+  }
 
   const swipeTitle = shift.status === 'scheduled' ? 'Sign In' : 'Complete Shift';
   const swipeDisabled = !eligibleTime || !currentCoords || !shiftCoords || shift.status === 'completed';
@@ -205,5 +212,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textDecorationLine: "underline",
     fontWeight: "500",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF7E6',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#888',
   },
 });
