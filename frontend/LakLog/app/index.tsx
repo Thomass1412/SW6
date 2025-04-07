@@ -30,6 +30,7 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
+        await AsyncStorage.setItem('accessToken', data.accessToken);
         await AsyncStorage.setItem('user', JSON.stringify({
           name: data.user.name,
           email: data.user.email,
