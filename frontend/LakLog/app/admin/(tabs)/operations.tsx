@@ -1,9 +1,11 @@
 import React, { useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 export default function OperationsScreen() {
   const navigation = useNavigation();
+  const router = useRouter(); 
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -26,7 +28,7 @@ export default function OperationsScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={() => handlePress("Employees")}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/admin/employeesPage")}>
         <Text style={styles.buttonText}>Employees</Text>
       </TouchableOpacity>
 
