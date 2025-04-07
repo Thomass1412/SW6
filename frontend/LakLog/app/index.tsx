@@ -30,8 +30,12 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem("accessToken", data.accessToken);
-        await AsyncStorage.setItem("userRole", data.user.role);
+        await AsyncStorage.setItem('user', JSON.stringify({
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          jobTitle: data.user.jobTitle,
+        }));
 
         router.replace(data.redirect);
       } else {
