@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../../components/CustomButton'; 
+import { router } from 'expo-router';
 
 export default function EmployeesScreen() {
   const navigation = useNavigation();
@@ -195,7 +196,7 @@ export default function EmployeesScreen() {
         )}
   
         <CustomButton
-          onPress={() => Alert.alert("This takes you to the create employee page")}
+          onPress={() => router.push("/admin/createEmployee")}
           iconName="add"
           text="New employee"
           position={{ bottom: 30, right: 30 }}
