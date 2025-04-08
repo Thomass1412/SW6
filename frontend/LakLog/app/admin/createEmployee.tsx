@@ -51,6 +51,11 @@ export default function CreateEmployeeScreen() {
     router.back(); // or navigate to another page
   };
 
+  const isFormValid =
+    name &&
+    email.trim() &&
+    phone.trim();
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Name</Text>
@@ -93,9 +98,9 @@ export default function CreateEmployeeScreen() {
       ))}
 
       <TouchableOpacity
-        style={styles.createButton}
+        style={[styles.createButton, { opacity: isFormValid ? 1 : 0.5 }]}
         onPress={handleCreate}
-      >
+        disabled={!isFormValid}>
         <Text style={styles.createButtonText}>Create Employee</Text>
       </TouchableOpacity>
     </View>
@@ -112,11 +117,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 4,
     marginTop: 10,
+    fontWeight: 'bold',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#999',
-    backgroundColor: '#fff',
+    borderColor: "#ccc",
+    backgroundColor: '#FFFBEE',
     borderRadius: 5,
     padding: 10,
     marginBottom: 5,
