@@ -142,24 +142,33 @@ export default function EmployeesScreen() {
             <Text>Phone: {selectedEmployee.phone || "N/A"}</Text>
             <Text>Roles: {selectedEmployee.jobTitle?.join(', ') || "None"}</Text>
 
-            <TouchableOpacity
-              onPress={() =>
-                Alert.alert(
-                  "Delete Employee",
-                  "Are you sure you want to delete this employee?",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: () => handleDeleteEmployee(selectedEmployee._id),
-                    },
-                  ]
-                )
-              }
-            >
-              <Text style={styles.deleteText}>Delete Employee</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                onPress={() => Alert.alert("This takes you to the edit employee page")}
+                style={styles.editButton}
+              >
+                <Text style={styles.editText}>Edit Employee</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    "Delete Employee",
+                    "Are you sure you want to delete this employee?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: () => handleDeleteEmployee(selectedEmployee._id),
+                      },
+                    ]
+                  )
+                }
+                style={styles.deleteButton}>
+                <Text style={styles.deleteText}>Delete Employee</Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -242,10 +251,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  deleteText: {
-    color: 'red',
-    marginTop: 15,
-    textAlign: 'center',
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  editButton: {
+    marginRight: 10,
+  },
+  editText: {
+    color: '#000',
     fontWeight: 'bold',
   },
+  deleteButton: {
+    marginLeft: 10,
+  },
+  deleteText: {
+    color: 'red',
+    fontWeight: 'bold',
+  },
+  
 });
