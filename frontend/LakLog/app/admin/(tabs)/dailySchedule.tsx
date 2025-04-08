@@ -23,7 +23,6 @@ export default function DailySchedule() {
   useEffect(() => {
     const fetchShifts = async () => {
       if (lastFetchedDate === selectedDate.format('YYYY-MM-DD')) {
-        console.log("🔸 Skipping fetch, same date as last request.");
         return; 
       }
 
@@ -36,7 +35,6 @@ export default function DailySchedule() {
         }
 
         const formattedDate = selectedDate.format('YYYY-MM-DD');
-        console.log(`📅 Fetching shifts for date: ${formattedDate}`);
 
         const response = await fetch(`http://192.168.0.154:5000/shifts/all-date?date=${formattedDate}`, {
           method: "GET",
@@ -116,7 +114,7 @@ export default function DailySchedule() {
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}></Text>
-        <ShiftList shifts={shifts} isAdmin={isAdmin} />
+        <ShiftList shifts={shifts} isAdmin={true} />
       </View>
       <CustomButton 
         onPress={() => router.push(`/admin/createShift?date=${selectedDate.format("YYYY-MM-DD")}`)}  

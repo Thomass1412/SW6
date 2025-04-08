@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import SwipeButton from "rn-swipe-button";
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,6 +18,16 @@ export default function SpecificShift() {
   const [currentCoords, setCurrentCoords] = useState<Coords | null>(null);
   const [eligibleTime, setEligibleTime] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+      navigation.setOptions({
+        title: "My Shift",
+        headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
+        headerTitleAlign: "center",
+      });
+    }, [navigation]);
+  
 
   useEffect(() => {
     const setup = async () => {
@@ -46,7 +56,7 @@ export default function SpecificShift() {
         setCurrentCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
 
         const now = dayjs();
-        console.log("🕓 Now:", now.format());
+        console.log("Now:", now.format());
         const dateStr = dayjs(data.date).format("YYYY-MM-DD");
         const refTime = dayjs(`${dateStr}T${data.status === 'scheduled' ? data.startTime : data.endTime}`);
         console.log("🕒 Ref Time:", refTime.format());
@@ -86,10 +96,10 @@ export default function SpecificShift() {
 
       const result = await res.json();
       if (res.ok) {
-        Alert.alert("✅ Success", result.message);
+        Alert.alert("Success", result.message);
         setShift({ ...shift, status: shift.status === 'scheduled' ? 'signed-in' : 'completed' });
       } else {
-        Alert.alert("❌ Error", result.error);
+        Alert.alert("Error", result.error);
       }
     } catch (err) {
       console.error(err);
@@ -97,7 +107,14 @@ export default function SpecificShift() {
     }
   };
 
-  if (!shift || loading) return <Text>Loading...</Text>;
+  if (!shift || loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#F7CB8C" />
+        <Text style={styles.loadingText}>Loading shift details...</Text>
+      </View>
+    );
+  }
 
   const swipeTitle = shift.status === 'scheduled' ? 'Sign In' : 'Complete Shift';
   const swipeDisabled = !eligibleTime || !currentCoords || !shiftCoords || shift.status === 'completed';
@@ -133,9 +150,9 @@ export default function SpecificShift() {
         )}
         disabled={swipeDisabled}
         disableResetOnTap={false}
-        disabledThumbIconBackgroundColor="D9D9D9"
+        disabledThumbIconBackgroundColor="#D9D9D9"
         disabledRailBackgroundColor="#BCBCBC"
-        disabledThumbIconBorderColor="D9D9D9"
+        disabledThumbIconBorderColor="#D9D9D9"
         railBackgroundColor="#F7CB8C"
         railBorderColor="#999"
         railFillBackgroundColor="#FFE8C7"
@@ -195,5 +212,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textDecorationLine: "underline",
     fontWeight: "500",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF7E6',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#888',
   },
 });
