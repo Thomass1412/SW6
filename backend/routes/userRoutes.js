@@ -25,7 +25,7 @@ router.get("/employees", verifyToken, checkAdmin, async (req, res) => {
   
 
 // Delete a user (Admin only)
-router.delete("/:id", verifyToken, checkAdmin, async (req, res) => {
+router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ message: "User not found" });

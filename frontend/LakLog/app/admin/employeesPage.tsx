@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
+  Pressable
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +21,8 @@ export default function EmployeesScreen() {
   const [filteredEmployees, setFilteredEmployees] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -79,42 +83,118 @@ export default function EmployeesScreen() {
     setFilteredEmployees(filtered);
   }, [searchText, employees]);
 
+  const handleDeleteEmployee = async (id: string) => {
+    const token = await AsyncStorage.getItem("accessToken");
+    try {
+      const res = await fetch(`http://192.168.0.154:5000/users/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
+      const result = await res.json();
+      if (res.ok) {
+        Alert.alert("Deleted", result.message);
+        // remove from local state
+        const updated = employees.filter(emp => emp._id !== id);
+        setEmployees(updated);
+        setFilteredEmployees(updated);
+        setModalVisible(false);
+      } else {
+        Alert.alert("Error", result.message || "Failed to delete employee.");
+      }
+    } catch (err) {
+      Alert.alert("Error", "Something went wrong.");
+      console.error(err);
+    }
+  };
+
   const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.item}>
+    <TouchableOpacity
+      style={styles.item}
+      onPress={() => {
+        setSelectedEmployee(item);
+        setModalVisible(true);
+      }}
+    >
       <Text style={styles.itemText}>{item.name}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Search"
-        value={searchText}
-        onChangeText={setSearchText}
-        style={styles.searchInput}
-        placeholderTextColor="#999"
-      />
+    <>
+      {selectedEmployee && (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}>
+          <Pressable
+            style={styles.modalContainer}
+            onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalName}>{selectedEmployee.name}</Text>
+            <Text>Email: {selectedEmployee.email}</Text>
+            <Text>Phone: {selectedEmployee.phone || "N/A"}</Text>
+            <Text>Roles: {selectedEmployee.jobTitle?.join(', ') || "None"}</Text>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#F7CB8C" style={{ marginTop: 20 }} />
-      ) : (
-        <FlatList
-          data={filteredEmployees}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Delete Employee",
+                  "Are you sure you want to delete this employee?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: () => handleDeleteEmployee(selectedEmployee._id),
+                    },
+                  ]
+                )
+              }
+            >
+              <Text style={styles.deleteText}>Delete Employee</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    )}
+  
+      <View style={styles.container}>
+        <TextInput
+          placeholder="Search"
+          value={searchText}
+          onChangeText={setSearchText}
+          style={styles.searchInput}
+          placeholderTextColor="#999"
         />
-      )}
-
-      <CustomButton
-        onPress={() => Alert.alert("This takes you to the create employee page")}
-        iconName="add"
-        text="New employee"
-        position={{ bottom: 30, right: 30 }}
-      />
-    </View>
+  
+        {loading ? (
+          <ActivityIndicator size="large" color="#F7CB8C" style={{ marginTop: 20 }} />
+        ) : (
+          <FlatList
+            data={filteredEmployees}
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+          />
+        )}
+  
+        <CustomButton
+          onPress={() => Alert.alert("This takes you to the create employee page")}
+          iconName="add"
+          text="New employee"
+          position={{ bottom: 30, right: 30 }}
+        />
+      </View>
+    </>
   );
-}
+}  
 
 const styles = StyleSheet.create({
   container: {
@@ -133,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   list: {
-    paddingBottom: 100, // space for the floating button
+    paddingBottom: 100, 
   },
   item: {
     paddingVertical: 15,
@@ -142,5 +222,30 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 18,
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContainer: {
+    backgroundColor: '#FFE8C7',
+    padding: 20,
+    borderRadius: 10,
+    minWidth: '75%',
+    elevation: 5,
+  },
+  modalName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  deleteText: {
+    color: 'red',
+    marginTop: 15,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
