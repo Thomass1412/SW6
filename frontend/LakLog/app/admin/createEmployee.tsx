@@ -10,6 +10,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const availableRoles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
 
@@ -45,11 +46,43 @@ export default function CreateEmployeeScreen() {
     );
   };
 
-  const handleCreate = () => {
-    // Replace with actual POST request
-    Alert.alert('✅ Employee Created', `Name: ${name}\nEmail: ${email}\nRoles: ${selectedRoles.join(', ')}`);
-    router.back(); // or navigate to another page
+  const handleCreate = async () => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No token found!");
+        return;
+      }
+  
+      const response = await fetch("http://192.168.0.154:5000/auth/signup", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          jobTitle: selectedRoles,
+        }),
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Employee created:", result);
+        Alert.alert("Success", "Employee created successfully!");
+        router.back();
+      } else {
+        const error = await response.json();
+        Alert.alert("Error", error.message || "Failed to create employee.");
+      }
+    } catch (error) {
+      console.error("Failed to create employee", error);
+      Alert.alert("Error", "An unexpected error occurred.");
+    }
   };
+
 
   const isFormValid =
     name &&
