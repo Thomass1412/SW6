@@ -11,8 +11,10 @@ const nodemailer = require("nodemailer");
 
 router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
     const { name, email, phone, role = "User", jobTitle = [] } = req.body;
-  
+
     try {
+      const normalizedEmail = email.toLowerCase();
+
       // 1. Check if user already exists
       const userExists = await User.findOne({ email });
       if (userExists) {
@@ -31,7 +33,7 @@ router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
       // 4. Store user in your DB
       const newUser = new User({
         name,
-        email,
+        email: normalizedEmail,
         phone,
         password: placeholderPassword,
         role,
@@ -78,7 +80,7 @@ router.post("/login", async (req, res) => {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         console.log("Decoded Firebase Token:", decodedToken);
 
-        const email = decodedToken.email;
+        const email = decodedToken.email?.toLowerCase();;
         if (!email) {
             return res.status(401).json({ error: "Invalid Firebase Token - No Email" });
         }
