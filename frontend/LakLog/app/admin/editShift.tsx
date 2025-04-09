@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, Button, Alert, Platform,
+  View, Text, TextInput, StyleSheet, Button, Alert, Platform, TouchableOpacity
 } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 
 const locations = ["Lokation A", "Lokation B", "Lokation C", "Silkeborggade 21"];
 const jobTitles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
-const statuses = ["scheduled", "signed-in", "completed", "canceled", "unavailability"];
+const statuses = ["scheduled", "signed-in", "completed", "canceled"];
 
 export default function UpdateShiftScreen() {
   const navigation = useNavigation();
@@ -26,9 +26,11 @@ export default function UpdateShiftScreen() {
   const [status, setStatus] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  const validateTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Update Shift',
+      title: 'Edit Shift',
       headerStyle: { backgroundColor: '#F7CB8C', height: 80 },
       headerTitleAlign: 'center',
     });
@@ -82,6 +84,16 @@ export default function UpdateShiftScreen() {
 
   if (!shift) return <Text>Loading shift...</Text>;
 
+  const isFormValid =
+    date &&
+    startTime.trim() &&
+    endTime.trim() &&
+    location.trim() &&
+    jobTitle.trim() &&
+    validateTime(startTime) &&
+    validateTime(endTime);
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Date</Text>
@@ -119,7 +131,12 @@ export default function UpdateShiftScreen() {
         {statuses.map(stat => <Picker.Item key={stat} label={stat} value={stat} />)}
       </Picker>
 
-      <Button title="Update Shift" onPress={handleSubmit} />
+      <TouchableOpacity
+            style={[styles.createButton, { opacity: isFormValid ? 1 : 0.5 }]}
+            onPress={handleSubmit}
+            disabled={!isFormValid}>
+            <Text style={styles.createButtonText}>Update Shift</Text>
+        </TouchableOpacity>
     </View>
   );
 }
@@ -136,10 +153,26 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#aaa',
+    borderColor: '#ccc',
     borderRadius: 5,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFBEE',
     padding: 10,
     marginBottom: 10,
+  },
+  createButton: {
+    marginTop: 30,
+    backgroundColor: '#F7CB8C',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  createButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
