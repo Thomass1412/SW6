@@ -96,14 +96,16 @@ export default function UpdateShiftScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Date</Text>
-      <Button title={dayjs(date).format('YYYY-MM-DD')} onPress={() => setShowDatePicker(true)} />
+      <Text style={styles.label}>Select Date</Text>
+      <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+        <Text>{date.toDateString()}</Text>
+      </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
           value={date}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(e, selectedDate) => {
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, selectedDate) => {
             setShowDatePicker(false);
             if (selectedDate) setDate(selectedDate);
           }}
@@ -148,8 +150,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
+    fontSize: 16,
+    marginBottom: 4,
+    marginTop: 10,
     fontWeight: 'bold',
-    marginTop: 15,
   },
   input: {
     borderWidth: 1,
