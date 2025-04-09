@@ -407,5 +407,17 @@ router.get("/:id", verifyToken, async (req, res) => {
   }
 });
 
+router.put("/:id", verifyToken, checkAdmin, async (req, res) => {
+  try {
+    const updatedShift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedShift) {
+      return res.status(404).json({ message: "Shift not found" });
+    }
+    res.json({ message: "Shift updated", shift: updatedShift });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
 
 module.exports = router;
