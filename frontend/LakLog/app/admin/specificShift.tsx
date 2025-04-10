@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
 import {TouchableOpacity, Text, View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 
@@ -9,6 +9,7 @@ export default function AdminShiftDetails() {
   const { id } = useLocalSearchParams();
   const [shift, setShift] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchShift = async () => {
@@ -51,7 +52,7 @@ export default function AdminShiftDetails() {
     );
   }
 
-  const handleSubmit = async () => {Alert.alert("This takes you to the update shift page")}
+  const handleSubmit = async () => {router.push(`/admin/editShift?id=${id}`);}
 
   return (
     <View style={styles.container}>
@@ -83,7 +84,7 @@ export default function AdminShiftDetails() {
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={handleSubmit}>
+        onPress={() => {router.push(`/admin/editShift?id=${id}`);}}>
         <Text style={styles.buttonText}>Update Shift</Text>
       </TouchableOpacity>
       <TouchableOpacity

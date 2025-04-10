@@ -9,6 +9,7 @@ export default function AdminLayout() {
       <Stack.Screen name="createShift" options={{ headerShown: true, title: "Create Shift" }} />
       <Stack.Screen name="specificShift" options={{ headerShown: true, title: "Shift Details" }} />
       <Stack.Screen name="employeesPage" options={{ headerShown: true, title: "Employees" }} />
+      <Stack.Screen name="createEmployee" options={{ headerShown: true, title: "Create Employee" }} />
     </Stack>
   );
 }

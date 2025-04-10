@@ -5,45 +5,69 @@ const User = require("../models/user"); // Import User model
 const admin = require("../config/firebase"); // Import Firebase Admin
 const bcrypt = require("bcrypt");
 const { verifyToken } = require("../middlewares/authMiddleware");
+const { checkAdmin } = require("../middlewares/roleMiddleware"); 
+const nodemailer = require("nodemailer");
 
 
-router.post("/signup", async (req, res) => {
-    const { name, email, password, role } = req.body;
+router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
+    const { name, email, phone, role = "User", jobTitle = [] } = req.body;
 
     try {
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: "User already exists" });
-        }
+      const normalizedEmail = email.toLowerCase();
 
-        // Create user in Firebase Authentication
-        const userRecord = await admin.auth().createUser({
-            email,
-            password,
-            displayName: name,
-        });
-
-        // Hash password before storing in MongoDB (optional, but unnecessary since Firebase handles it)
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Save user in MongoDB
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword, //This is now unnecessary since Firebase handles authentication
-            role,
-            firebaseUID: userRecord.uid, // Store Firebase UID for reference
-        });
-
-        await newUser.save();
-
-        res.status(201).json({ message: "User registered successfully", user: newUser });
+      // 1. Check if user already exists
+      const userExists = await User.findOne({ email });
+      if (userExists) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+  
+      // 2. Create Firebase user (no password)
+      const userRecord = await admin.auth().createUser({
+        email,
+        displayName: name,
+      });
+  
+      // 3. Optionally store a placeholder password in Mongo (not required)
+      const placeholderPassword = await bcrypt.hash("placeholder", 10);
+  
+      // 4. Store user in your DB
+      const newUser = new User({
+        name,
+        email: normalizedEmail,
+        phone,
+        password: placeholderPassword,
+        role,
+        jobTitle,
+        firebaseUID: userRecord.uid,
+      });
+  
+      await newUser.save();
+  
+      // 5. Generate Firebase reset link
+      const resetLink = await admin.auth().generatePasswordResetLink(email);
+  
+      // 6. Email the link using Nodemailer
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+      });
+  
+      await transporter.sendMail({
+        from: `"Shift Manager" <${process.env.MAIL_USER}>`,
+        to: email,
+        subject: "Set Your Password",
+        text: `Hi ${name},\n\nYour account has been created.\nClick the link below to set your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\n- Your Team`,
+      });
+  
+      res.status(201).json({ message: "User created and email sent", user: newUser });
     } catch (error) {
-        console.error("Signup Error:", error);
-        res.status(500).json({ error: error.message });
+      console.error("Signup error:", error);
+      res.status(500).json({ error: error.message });
     }
-});
-
+  });
 
 router.post("/login", async (req, res) => {
     try {
@@ -56,7 +80,7 @@ router.post("/login", async (req, res) => {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         console.log("Decoded Firebase Token:", decodedToken);
 
-        const email = decodedToken.email;
+        const email = decodedToken.email?.toLowerCase();;
         if (!email) {
             return res.status(401).json({ error: "Invalid Firebase Token - No Email" });
         }
