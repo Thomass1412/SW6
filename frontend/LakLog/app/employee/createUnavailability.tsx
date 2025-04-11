@@ -81,7 +81,6 @@ export default function CreateShift() {
   };
 
 
-  const showDatepicker = () => setShowDatePicker(true);
 
   const isFormValid =
     date &&
@@ -94,7 +93,7 @@ export default function CreateShift() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Select Date</Text>
-      <TouchableOpacity style={styles.input} onPress={showDatepicker}>
+      <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
         <Text>{date.toDateString()}</Text>
       </TouchableOpacity>
       {showDatePicker && (

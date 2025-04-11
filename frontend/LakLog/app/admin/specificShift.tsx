@@ -52,8 +52,6 @@ export default function AdminShiftDetails() {
     );
   }
 
-  const handleSubmit = async () => {router.push(`/admin/editShift?id=${id}`);}
-
   return (
     <View style={styles.container}>
       <View style={styles.shiftBox}>

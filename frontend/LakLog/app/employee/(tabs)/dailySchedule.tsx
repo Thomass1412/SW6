@@ -37,7 +37,6 @@ export default function DailySchedule() {
   useEffect(() => {
     const fetchShifts = async () => {
       if (lastFetchedDate === selectedDate.format('YYYY-MM-DD')) {
-        console.log("🔸 Skipping fetch, same date as last request.");
         return; 
       }
 
@@ -50,7 +49,6 @@ export default function DailySchedule() {
         }
 
         const formattedDate = selectedDate.format('YYYY-MM-DD');
-        console.log(`📅 Fetching shifts for date: ${formattedDate}`);
 
         const response = await fetch(`http://192.168.0.154:5000/shifts/my-shifts?date=${formattedDate}`, {
           method: "GET",
