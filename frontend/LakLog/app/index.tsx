@@ -1,28 +1,26 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch } from "react-native";
 import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../config/firebase";
-import { API_URL } from "../config/ipconfig"
-
-
+import { API_URL } from "../config/ipconfig";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [staySignedIn, setStaySignedIn] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     setLoading(true);
-    setError(""); 
+    setError("");
+
     try {
       // Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
       const idToken = await userCredential.user.getIdToken();
-      console.log("Got ID Token:", idToken);
 
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -33,20 +31,26 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem('accessToken', data.accessToken);
-        await AsyncStorage.setItem('user', JSON.stringify({
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          jobTitle: data.user.jobTitle,
-        }));
+        // Save session details
+        await AsyncStorage.multiSet([
+          ['accessToken', data.accessToken],
+          ['user', JSON.stringify({
+            name: data.user.name,
+            email: data.user.email,
+            role: data.user.role,
+            jobTitle: data.user.jobTitle,
+          })],
+          ['loginTime', Date.now().toString()],
+          ['staySignedIn', staySignedIn ? 'true' : 'false'],
+        ]);
 
+        // Navigate to correct screen
         router.replace(data.redirect);
       } else {
-        setError(data.error || "Login failed"); 
+        setError(data.error || "Login failed");
       }
-    } catch (error) {
-      if ((error as { code: string }).code === "auth/invalid-credential" || (error as { code: string }).code === "auth/invalid-email") {
+    } catch (error: any) {
+      if (error.code === "auth/invalid-credential" || error.code === "auth/invalid-email") {
         setError("Invalid email or password");
       } else {
         console.error(error);
@@ -60,6 +64,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -68,6 +73,7 @@ export default function LoginScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
+
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -75,10 +81,28 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Sign in"}</Text>
+
+      <View style={styles.switchContainer}>
+        <Text>Stay signed in</Text>
+        <Switch
+          value={staySignedIn}
+          onValueChange={setStaySignedIn}
+          trackColor={{ false: "#ccc", true: "#F7CB8C" }}
+          thumbColor={staySignedIn ? "#FF9900" : "#f4f3f4"}
+        />
+      </View>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Logging in..." : "Sign in"}
+        </Text>
       </TouchableOpacity>
-      {error ? <Text style={styles.errorText}>{String(error)}</Text> : null}
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -105,6 +129,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#fff",
   },
+  switchContainer: {
+    width: "80%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   button: {
     backgroundColor: "#F7CB8C",
     padding: 15,
@@ -113,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    color: "#000000",
+    color: "#000",
     fontSize: 18,
   },
   errorText: {

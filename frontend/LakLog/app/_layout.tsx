@@ -4,7 +4,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAuth } from "../hooks/useAuth";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { StatusBar } from 'expo-status-bar';
-import { Slot } from 'expo-router';
 
 export default function RootLayout() {
   const router = useRouter();
