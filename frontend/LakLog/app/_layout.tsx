@@ -18,7 +18,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (isMounted && !loading) {
       if (!user) {
+
         router.replace("/"); 
+
       } else if (user.role === "User") {
         router.replace("/employee/(tabs)/monthlySchedule");
       } else if (user.role === "Admin") {
