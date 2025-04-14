@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
+import { API_URL } from '../../config/ipconfig';
 
 export default function CreateShift() {
   const [date, setDate] = useState(new Date());
@@ -101,7 +102,7 @@ export default function CreateShift() {
         return;
       }
 
-      const response = await fetch("http://192.168.0.154:5000/shifts/create", {
+      const response = await fetch(`${API_URL}/shifts/create`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

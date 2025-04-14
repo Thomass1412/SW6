@@ -7,6 +7,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
+import { API_URL } from '../../config/ipconfig';
 
 const locations = ["Lokation A", "Lokation B", "Lokation C", "Silkeborggade 21"];
 const jobTitles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
@@ -39,7 +40,7 @@ export default function UpdateShiftScreen() {
   useEffect(() => {
     const fetchShift = async () => {
       const token = await AsyncStorage.getItem('accessToken');
-      const res = await fetch(`http://192.168.0.154:5000/shifts/${id}`, {
+      const res = await fetch(`${API_URL}/shifts/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -57,7 +58,7 @@ export default function UpdateShiftScreen() {
 
   const handleSubmit = async () => {
     const token = await AsyncStorage.getItem('accessToken');
-    const response = await fetch(`http://192.168.0.154:5000/shifts/${id}`, {
+    const response = await fetch(`${API_URL}/shifts/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
