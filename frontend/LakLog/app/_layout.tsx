@@ -3,6 +3,8 @@ import { Stack, useRouter } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAuth } from "../hooks/useAuth";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { StatusBar } from 'expo-status-bar';
+import { Slot } from 'expo-router';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -16,7 +18,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (isMounted && !loading) {
       if (!user) {
-        router.replace("/"); // Redirect to login
+        router.replace("/"); 
       } else if (user.role === "User") {
         router.replace("/employee/(tabs)/monthlySchedule");
       } else if (user.role === "Admin") {
@@ -31,6 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="admin" options={{ headerShown: false }} />
         <Stack.Screen name="employee" options={{ headerShown: false }} />
       </Stack>
+      <StatusBar style="light" backgroundColor="#000000" translucent={false} />
     </GestureHandlerRootView>
   );
 }
