@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from "../../../config/ipconfig"
 
 
-// Helper: convert shift dates to markedDates move to utils
+// convert shift dates to markedDates move to utils
 const getMarkedDatesFromShifts = (shifts: { date: string }[]) => {
   const result: { [date: string]: any } = {};
   shifts.forEach(shift => {

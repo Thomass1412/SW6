@@ -4,7 +4,7 @@ const User = require("../models/user");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
 
-// Get all employees (Admin only)
+// Get all employees 
 router.get("/employees", verifyToken, checkAdmin, async (req, res) => {
     try {
       const { jobTitle } = req.query;
@@ -24,7 +24,7 @@ router.get("/employees", verifyToken, checkAdmin, async (req, res) => {
   })
   
 
-// Delete a user (Admin only)
+// Delete a user 
 router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);

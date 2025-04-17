@@ -4,12 +4,12 @@ const User = require("../models/user");
 // Middleware: Verify Firebase Token & Check Admin Role
 const checkAdmin = async (req, res, next) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1]; // Extract token
+        const token = req.headers.authorization?.split(" ")[1]; // extract token
         if (!token) {
             return res.status(401).json({ error: "Unauthorized - No token provided" });
         }
 
-        // Verify Firebase ID Token
+        // verify Firebase ID Token
         const decodedToken = await admin.auth().verifyIdToken(token);
         const email = decodedToken.email;
 
@@ -19,7 +19,7 @@ const checkAdmin = async (req, res, next) => {
             return res.status(403).json({ error: "Forbidden - Admins only" });
         }
 
-        // Attach user to request and proceed
+        // attach user to request and proceed
         req.user = user;
         next();
     } catch (error) {

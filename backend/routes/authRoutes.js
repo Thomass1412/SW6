@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const User = require("../models/user"); // Import User model
-const admin = require("../config/firebase"); // Import Firebase Admin
+const User = require("../models/user"); 
+const admin = require("../config/firebase"); 
 const bcrypt = require("bcrypt");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware"); 
@@ -15,22 +15,22 @@ router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
     try {
       const normalizedEmail = email.toLowerCase();
 
-      // 1. Check if user already exists
+      // does user exist
       const userExists = await User.findOne({ email });
       if (userExists) {
         return res.status(400).json({ message: "User already exists" });
       }
   
-      // 2. Create Firebase user (no password)
+      // create user in firebase console
       const userRecord = await admin.auth().createUser({
         email,
         displayName: name,
       });
   
-      // 3. Optionally store a placeholder password in Mongo (not required)
+      // create a placehodler password, that way user can get out of limbo
       const placeholderPassword = await bcrypt.hash("placeholder", 10);
   
-      // 4. Store user in your DB
+      // save user in mongo
       const newUser = new User({
         name,
         email: normalizedEmail,
@@ -43,10 +43,10 @@ router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
   
       await newUser.save();
   
-      // 5. Generate Firebase reset link
+      // genrate reset link firebase
       const resetLink = await admin.auth().generatePasswordResetLink(email);
   
-      // 6. Email the link using Nodemailer
+      // send email 
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -56,7 +56,7 @@ router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
       });
   
       await transporter.sendMail({
-        from: `"Shift Manager" <${process.env.MAIL_USER}>`,
+        from: `No Reply <${process.env.MAIL_USER}>`,
         to: email,
         subject: "Set Your Password",
         text: `Hi ${name},\n\nYour account has been created.\nClick the link below to set your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\n- Your Team`,
@@ -76,7 +76,7 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ error: "ID token is required" });
         }
 
-        // Verify Firebase ID Token
+        // verify Firebase ID Token
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         console.log("Decoded Firebase Token:", decodedToken);
 
@@ -85,13 +85,13 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid Firebase Token - No Email" });
         }
 
-        // Find user in MongoDB
+        // find user in MongoDB
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Generate Session Token 
+        // generate Session Token 
         const sessionToken = idToken; 
 
         res.json({

@@ -18,7 +18,7 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      // Firebase Authentication
+      // firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
@@ -31,7 +31,7 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Save session details
+        // save session details in local storage
         await AsyncStorage.multiSet([
           ['accessToken', data.accessToken],
           ['user', JSON.stringify({

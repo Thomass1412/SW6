@@ -10,7 +10,7 @@ interface ShiftCardProps {
 
 const ShiftCard: React.FC<ShiftCardProps> = ({ shift, onPress, isAdmin }) => {
   const isUnavailability = shift.status === "unavailability";
-  // Don't render unavailability shifts for admins
+  // dont render unavailability shifts for admins
   if (isAdmin && isUnavailability) return null;
 
   return (

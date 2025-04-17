@@ -4,11 +4,11 @@ const User = require("../models/user");
 const Shift = require("../models/shift");
 const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
-const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); // Assuming helpers
+const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); //helper function
 const dayjs = require("dayjs");
 
-// Get all shifts (accessible to all authenticated users)
-router.get("/", verifyToken, async (req, res) => {
+// get all shifts 
+router.get("/", verifyToken, checkAdmin, async (req, res) => {
     try {
         const shifts = await Shift.find().populate("employee", "name email");
         res.json(shifts);
@@ -17,23 +17,21 @@ router.get("/", verifyToken, async (req, res) => {
     }
 });
 
-// Get all shifts from a specific date(accessible to all authenticated users)
+// Get all shifts from a specific date
 router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
     try {
-        // Extract date from query params
         const date = req.query.date;
         if (!date) {
             return res.status(400).json({ error: "Date parameter is required" });
         }
 
-        // Convert date string to Date object
+        // convert date string to Date object
         const startOfDay = new Date(date);
         startOfDay.setUTCHours(0, 0, 0, 0);
 
         const endOfDay = new Date(date);
         endOfDay.setUTCHours(23, 59, 59, 999);
 
-        // Query MongoDB for shifts on the selected date
         const shifts = await Shift.find({
             date: { $gte: startOfDay, $lte: endOfDay },
         }).populate("employee", "name email");
@@ -48,9 +46,36 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
     }
 });
 
+// Get a shift by ID 
+router.get("/:id", verifyToken, async (req, res) => {
+  try {
+    const shift = await Shift.findById(req.params.id).populate("employee", "name role");
+    if (!shift) {
+      return res.status(404).json({ error: "Shift not found" });
+    }
+
+    res.json(shift);
+  } catch (err) {
+    console.error("Error fetching shift by ID:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// update a shift by ID
+router.put("/:id", verifyToken, checkAdmin, async (req, res) => {
+  try {
+    const updatedShift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedShift) {
+      return res.status(404).json({ message: "Shift not found" });
+    }
+    res.json({ message: "Shift updated", shift: updatedShift });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
 
 
-// Create a shift (Admin only)
+// Create a shift 
 router.post("/create", verifyToken, checkAdmin, async (req, res) => {
   console.log("Create shift request received");
   try {
@@ -93,13 +118,13 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
         });
       }
     }
-    // Create the initial shift
+    // create the initial shift
     const baseShift = new Shift(req.body);
     await baseShift.save();
 
     const createdShifts = [baseShift];
 
-    // Repeat for next 3 weeks if requested
+    // repeat for next 3 weeks if requested
     if (repeat === "weekly" && date) {
       for (let i = 1; i < 4; i++) {
         const newDate = dayjs(date).add(i, "week").toISOString();
@@ -141,21 +166,31 @@ router.post("/create", verifyToken, checkAdmin, async (req, res) => {
   }
 });
 
+// delete a shift 
+router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
+  try {
+      const shift = await Shift.findByIdAndDelete(req.params.id);
+      if (!shift) return res.status(404).json({ message: "Shift not found" });
+      res.json({ message: "Shift deleted successfully" });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// user route to create a unavailbility
 router.post("/new-unavailability", verifyToken, async (req, res) => {
   console.log("Create unavailability request received");
 
   try {
     const { startTime, endTime, repeat, date } = req.body;
 
-    // Lookup user from MongoDB using Firebase email
-    const firebaseEmail = req.user.email;
-    const user = await User.findOne({ email: firebaseEmail });
+    const user = await User.findOne({ email: req.user.email });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     const userId = user._id;
 
-    // Validate time
+    // validate time
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
       return res.status(400).json({ error: "Invalid time format. Use HH:MM (24-hour)." });
@@ -167,7 +202,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "End time must be after start time." });
     }
 
-    // Check for overlapping shifts
+    // check for overlapping shifts
     const existingShifts = await Shift.find({
       employee: userId,
       date: {
@@ -186,7 +221,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "You already have a shift that overlaps with this unavailability." });
     }
 
-    // Create initial unavailability
+    // create initial unavailability
     const base = new Shift({
       employee: userId,
       date,
@@ -198,7 +233,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
 
     const unavailabilities = [base];
 
-    // Repeat if requested
+    // repeat if requested
     if (repeat === "weekly") {
       for (let i = 1; i < 4; i++) {
         const newDate = dayjs(date).add(i, "week").toDate();
@@ -239,33 +274,23 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
   }
 });
 
-// Delete a shift (Admin only)
-router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
-    try {
-        const shift = await Shift.findByIdAndDelete(req.params.id);
-        if (!shift) return res.status(404).json({ message: "Shift not found" });
-        res.json({ message: "Shift deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
+//user route to fetch their shifts
 router.get("/my-shifts", verifyToken, async (req, res) => {
   try {
     const { date, start, end } = req.query;
 
-    // Ensure at least one valid query method
+    // ensure at least one valid query method
     if (!date && (!start || !end)) {
       return res.status(400).json({ error: "Provide either ?date= or ?start=&end=" });
     }
 
-    // Find user based on Firebase email
+    // fund user
     const user = await User.findOne({ email: req.user.email });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Prepare date filter for the MongoDB query
+    // prepare date filter for the MongoDB query
     let dateFilter = {};
     if (date) {
       const startOfDay = new Date(date);
@@ -281,7 +306,7 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
       dateFilter = { date: { $gte: startDate, $lte: endDate } };
     }
 
-    // Query for shifts matching employee and date filter
+    // query for shifts matching employee and date filter
     const shifts = await Shift.find({
       employee: user._id,
       ...dateFilter,
@@ -294,7 +319,7 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
   }
 });
 
-
+// user route to sign in to a shift
 router.post("/sign-in", verifyToken, async (req, res) => {
   const { shiftId, location, timestamp } = req.body;
   const userId = req.user.id;
@@ -319,7 +344,7 @@ router.post("/sign-in", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Too late to sign in." });
     }
 
-    const shiftCoords = await geocode(shift.location); // Ex: returns { lat, lng }
+    const shiftCoords = await geocode(shift.location); // returns {lat, lon}
     const distance = calculateDistanceMeters(
       location.latitude,
       location.longitude,
@@ -333,7 +358,7 @@ router.post("/sign-in", verifyToken, async (req, res) => {
 
     // Update shift
     shift.status = "signed-in";
-    shift.employee = userId; // Optional: assign employee on sign-in
+    shift.employee = userId; // assign user to shift (maybe useless)
     await shift.save();
 
     res.json({ message: "Successfully signed in", shift });
@@ -344,7 +369,7 @@ router.post("/sign-in", verifyToken, async (req, res) => {
   }
 });
 
-
+// user route to complte shift 
 router.post("/complete", verifyToken, async (req, res) => {
   const { shiftId, location, timestamp } = req.body;
   const userId = req.user.id;
@@ -360,7 +385,7 @@ router.post("/complete", verifyToken, async (req, res) => {
     if (diff > 10) {
       return res.status(400).json({ error: "You can only complete the shift within 10 minutes of end time." });
     }
-
+    //extract location of user and shift and compare
     const shiftCoords = await geocode(shift.location);
     const distance = calculateDistanceMeters(
       location.latitude,
@@ -375,7 +400,7 @@ router.post("/complete", verifyToken, async (req, res) => {
 
     shift.status = "completed";
     await shift.save();
-
+    //create shift in MongoDB
     await ShiftLog.create({
       user: userId,
       shift: shiftId,
@@ -392,32 +417,7 @@ router.post("/complete", verifyToken, async (req, res) => {
   }
 });
 
-// Get a shift by ID (accessible to all authenticated users) 
-router.get("/:id", verifyToken, async (req, res) => {
-  try {
-    const shift = await Shift.findById(req.params.id).populate("employee", "name role");
-    if (!shift) {
-      return res.status(404).json({ error: "Shift not found" });
-    }
 
-    res.json(shift);
-  } catch (err) {
-    console.error("Error fetching shift by ID:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-router.put("/:id", verifyToken, checkAdmin, async (req, res) => {
-  try {
-    const updatedShift = await Shift.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedShift) {
-      return res.status(404).json({ message: "Shift not found" });
-    }
-    res.json({ message: "Shift updated", shift: updatedShift });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-})
 
 
 module.exports = router;

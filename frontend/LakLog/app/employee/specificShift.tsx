@@ -40,7 +40,6 @@ export default function SpecificShift() {
         });
         const data = await res.json();
         setShift(data);
-        console.log("🔄 Loaded shift:", data);
 
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
@@ -60,12 +59,12 @@ export default function SpecificShift() {
         console.log("Now:", now.format());
         const dateStr = dayjs(data.date).format("YYYY-MM-DD");
         const refTime = dayjs(`${dateStr}T${data.status === 'scheduled' ? data.startTime : data.endTime}`);
-        console.log("🕒 Ref Time:", refTime.format());
+        console.log("Ref Time:", refTime.format());
         const diff = refTime.diff(now, 'minute');
-        console.log("⏳ Diff (minutes):", diff);
+        console.log("Diff (minutes):", diff);
         const validTime = data.status === 'scheduled' ? (diff <= 100 && diff >= -100) : Math.abs(diff) <= 100;
         setEligibleTime(validTime);
-        console.log("✔️ Eligible:", validTime)
+        console.log("eligible:", validTime)
       } catch (err) {
         console.error("Setup error:", err);
         Alert.alert("Error", "Failed to load shift data.");
