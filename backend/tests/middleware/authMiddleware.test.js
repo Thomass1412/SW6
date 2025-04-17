@@ -1,9 +1,10 @@
 const { verifyToken } = require("../../middlewares/authMiddleware");
-const admin = require("../../config/firebase");
+
+const mockVerifyIdToken = jest.fn();
 
 jest.mock("../../config/firebase", () => ({
   auth: () => ({
-    verifyIdToken: jest.fn(),
+    verifyIdToken: mockVerifyIdToken,
   }),
 }));
 
@@ -15,21 +16,12 @@ describe("verifyToken middleware", () => {
   };
 
   beforeEach(() => {
-    mockNext.mockClear();
-    mockRes.status.mockClear();
-    mockRes.json.mockClear();
+    jest.clearAllMocks();
   });
 
   it("should call next if token is valid", async () => {
     const mockDecodedToken = { uid: "123", email: "test@example.com" };
-    const mockVerify = jest.fn().mockResolvedValue(mockDecodedToken);
-    jest.mock("../../config/firebase", () => ({
-        auth: () => ({
-          verifyIdToken: mockVerify,
-        }),
-    }));
-
-    admin.auth().verifyIdToken.mockResolvedValue(mockDecodedToken);
+    mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
 
     const req = {
       headers: {
@@ -39,7 +31,7 @@ describe("verifyToken middleware", () => {
 
     await verifyToken(req, mockRes, mockNext);
 
-    expect(admin.auth().verifyIdToken).toHaveBeenCalledWith("mockToken");
+    expect(mockVerifyIdToken).toHaveBeenCalledWith("mockToken");
     expect(req.user).toEqual(mockDecodedToken);
     expect(mockNext).toHaveBeenCalled();
   });
@@ -55,12 +47,13 @@ describe("verifyToken middleware", () => {
   });
 
   it("should return 401 if token is invalid", async () => {
+    mockVerifyIdToken.mockRejectedValue(new Error("Invalid token"));
+
     const req = {
       headers: {
         authorization: "Bearer badToken",
       },
     };
-    admin.auth().verifyIdToken.mockRejectedValue(new Error("Invalid token"));
 
     await verifyToken(req, mockRes, mockNext);
 

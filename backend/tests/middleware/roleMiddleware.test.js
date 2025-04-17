@@ -1,16 +1,7 @@
 const { checkAdmin } = require("../../middlewares/roleMiddleware");
-const admin = require("../../config/firebase");
 const User = require("../../models/user");
 
-jest.mock("../../config/firebase", () => ({
-  auth: () => ({
-    verifyIdToken: jest.fn(),
-  }),
-}));
-
-jest.mock("../../models/user", () => ({
-  findOne: jest.fn(),
-}));
+jest.mock("../../models/user");
 
 describe("checkAdmin middleware", () => {
   const mockNext = jest.fn();
@@ -25,15 +16,11 @@ describe("checkAdmin middleware", () => {
 
   it("should proceed if user is admin", async () => {
     const req = {
-      headers: {
-        authorization: "Bearer validToken",
-      },
+      user: { email: "admin@example.com" },
     };
 
-    const decodedToken = { email: "admin@example.com" };
     const user = { email: "admin@example.com", role: "Admin" };
 
-    admin.auth().verifyIdToken.mockResolvedValue(decodedToken);
     User.findOne.mockResolvedValue(user);
 
     await checkAdmin(req, mockRes, mockNext);
@@ -42,43 +29,41 @@ describe("checkAdmin middleware", () => {
     expect(mockNext).toHaveBeenCalled();
   });
 
-  it("should return 401 if no token", async () => {
-    const req = { headers: {} };
+  it("should return 401 if no req.user", async () => {
+    const req = {}; // no user
 
     await checkAdmin(req, mockRes, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(401);
-    expect(mockRes.json).toHaveBeenCalledWith({ error: "Unauthorized - No token provided" });
+    expect(mockRes.json).toHaveBeenCalledWith({ error: "Invalid Firebase Token" });
+    expect(mockNext).not.toHaveBeenCalled();
   });
 
   it("should return 403 if user is not admin", async () => {
     const req = {
-      headers: {
-        authorization: "Bearer validToken",
-      },
+      user: { email: "user@example.com" },
     };
 
-    admin.auth().verifyIdToken.mockResolvedValue({ email: "user@example.com" });
     User.findOne.mockResolvedValue({ email: "user@example.com", role: "User" });
 
     await checkAdmin(req, mockRes, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(403);
     expect(mockRes.json).toHaveBeenCalledWith({ error: "Forbidden - Admins only" });
+    expect(mockNext).not.toHaveBeenCalled();
   });
 
-  it("should return 401 if Firebase verification fails", async () => {
+  it("should return 401 if user lookup fails", async () => {
     const req = {
-      headers: {
-        authorization: "Bearer invalid",
-      },
+      user: { email: "whoops@example.com" },
     };
 
-    admin.auth().verifyIdToken.mockRejectedValue(new Error("invalid"));
+    User.findOne.mockRejectedValue(new Error("DB error"));
 
     await checkAdmin(req, mockRes, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(401);
     expect(mockRes.json).toHaveBeenCalledWith({ error: "Invalid Firebase Token" });
+    expect(mockNext).not.toHaveBeenCalled();
   });
 });
