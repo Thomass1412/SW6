@@ -17,6 +17,51 @@ router.get("/", verifyToken, checkAdmin, async (req, res) => {
     }
 });
 
+//user route to fetch their shifts
+router.get("/my-shifts", verifyToken, async (req, res) => {
+  try {
+    const { date, start, end } = req.query;
+
+    // ensure at least one valid query method
+    if (!date && (!start || !end)) {
+      return res.status(400).json({ error: "Provide either ?date= or ?start=&end=" });
+    }
+    console.log("Decoded Firebase token:", req.user);
+    // fund user
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // prepare date filter for the MongoDB query
+    let dateFilter = {};
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(date);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      dateFilter = { date: { $gte: startOfDay, $lte: endOfDay } };
+    } else if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      dateFilter = { date: { $gte: startDate, $lte: endDate } };
+    }
+
+    // query for shifts matching employee and date filter
+    const shifts = await Shift.find({
+      employee: user._id,
+      ...dateFilter,
+    }).populate("employee", "name email");
+
+    res.json(shifts);
+  } catch (error) {
+    console.error("Error fetching shifts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Get all shifts from a specific date
 router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
     try {
@@ -45,6 +90,7 @@ router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // Get a shift by ID 
 router.get("/:id", verifyToken, async (req, res) => {
@@ -274,50 +320,6 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
   }
 });
 
-//user route to fetch their shifts
-router.get("/my-shifts", verifyToken, async (req, res) => {
-  try {
-    const { date, start, end } = req.query;
-
-    // ensure at least one valid query method
-    if (!date && (!start || !end)) {
-      return res.status(400).json({ error: "Provide either ?date= or ?start=&end=" });
-    }
-
-    // fund user
-    const user = await User.findOne({ email: req.user.email });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // prepare date filter for the MongoDB query
-    let dateFilter = {};
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setUTCHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(date);
-      endOfDay.setUTCHours(23, 59, 59, 999);
-
-      dateFilter = { date: { $gte: startOfDay, $lte: endOfDay } };
-    } else if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      dateFilter = { date: { $gte: startDate, $lte: endDate } };
-    }
-
-    // query for shifts matching employee and date filter
-    const shifts = await Shift.find({
-      employee: user._id,
-      ...dateFilter,
-    }).populate("employee", "name email");
-
-    res.json(shifts);
-  } catch (error) {
-    console.error("Error fetching shifts:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 // user route to sign in to a shift
 router.post("/sign-in", verifyToken, async (req, res) => {
