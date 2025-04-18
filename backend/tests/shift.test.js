@@ -136,12 +136,15 @@ describe("Shift Routes", () => {
   });
   /*
   it("GET /shift/my-shifts - returns user shifts", async () => {
-    User.findOne.mockResolvedValue({ _id: "user123" });
-    Shift.find.mockReturnValue({
-      populate: jest.fn().mockResolvedValue([{ _id: "s1", startTime: "08:00" }])
+    User.findOne = jest.fn().mockResolvedValue({ _id: "user123", email: "test@example.com" });
+  
+    Shift.find = jest.fn().mockReturnValue({
+      populate: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([{ _id: "s1", startTime: "08:00", employee: { name: "John", email: "john@example.com" } }])
     });
-
+  
     const res = await request(app).get("/shift/my-shifts?date=2025-04-20");
+  
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
   }); */
