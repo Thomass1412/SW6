@@ -62,7 +62,7 @@ export default function SpecificShift() {
         console.log("Ref Time:", refTime.format());
         const diff = refTime.diff(now, 'minute');
         console.log("Diff (minutes):", diff);
-        const validTime = data.status === 'scheduled' ? (diff <= 100 && diff >= -100) : Math.abs(diff) <= 100;
+        const validTime = data.status === 'scheduled' ? (diff <= 15 && diff >= -15) : Math.abs(diff) <= 15;
         setEligibleTime(validTime);
         console.log("eligible:", validTime)
       } catch (err) {

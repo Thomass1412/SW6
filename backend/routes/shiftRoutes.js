@@ -6,6 +6,11 @@ const { verifyToken } = require("../middlewares/authMiddleware");
 const { checkAdmin } = require("../middlewares/roleMiddleware");
 const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); //helper function
 const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // get all shifts 
 router.get("/", verifyToken, checkAdmin, async (req, res) => {
@@ -32,6 +37,7 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+    console.log("Querying for shifts of user:", user._id);
 
     // prepare date filter for the MongoDB query
     let dateFilter = {};
@@ -325,7 +331,7 @@ router.post("/new-unavailability", verifyToken, async (req, res) => {
 router.post("/sign-in", verifyToken, async (req, res) => {
   const { shiftId, location, timestamp } = req.body;
   const userId = req.user.id;
-
+  console.log("Timestamp received:", timestamp);
   try {
     const shift = await Shift.findById(shiftId);
     if (!shift) return res.status(404).json({ error: "Shift not found" });
@@ -334,18 +340,24 @@ router.post("/sign-in", verifyToken, async (req, res) => {
       return res.status(400).json({ error: `Shift already ${shift.status}` });
     }
 
-    const shiftStart = dayjs(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`);
-    const now = dayjs(timestamp);
+    const now = dayjs().tz("Europe/Copenhagen");
+    const shiftStart = dayjs.tz(`${dayjs(shift.date).format("YYYY-MM-DD")}T${shift.startTime}`, "Europe/Copenhagen");
+
+    console.log("Parsed now:", now.format());
 
     const minutesBefore = shiftStart.diff(now, "minute");
-    if (minutesBefore > 100) {
-      return res.status(400).json({ error: "Too early to sign in." });
+    console.log("Shift start:", shiftStart.format());
+    console.log("Minutes before:", minutesBefore);
+    if (minutesBefore > 15) {
+      return res.status(400).json({ error: "To early to sign in." });
     }
 
-    if (minutesBefore < -300) {
-      return res.status(400).json({ error: "Too late to sign in." });
+    if (minutesBefore < -15) {
+      return res.status(400).json({ error: "To late to sign in." });
     }
-
+    console.log("Now (DK):", now.format());
+    console.log("Shift start (DK):", shiftStart.format());
+    console.log("Minutes before:", minutesBefore);
     const shiftCoords = await geocode(shift.location); // returns {lat, lon}
     const distance = calculateDistanceMeters(
       location.latitude,
@@ -360,9 +372,13 @@ router.post("/sign-in", verifyToken, async (req, res) => {
 
     // Update shift
     shift.status = "signed-in";
-    shift.employee = userId; // assign user to shift (maybe useless)
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    shift.employee = user._id; // assign user to shift (maybe useless)
     await shift.save();
-
+    console.log("Signed-in shift saved:", shift);
     res.json({ message: "Successfully signed in", shift });
 
   } catch (err) {
@@ -384,8 +400,8 @@ router.post("/complete", verifyToken, async (req, res) => {
     const now = dayjs(timestamp);
     const diff = Math.abs(shiftEnd.diff(now, "minute"));
 
-    if (diff > 10) {
-      return res.status(400).json({ error: "You can only complete the shift within 10 minutes of end time." });
+    if (diff > 15) {
+      return res.status(400).json({ error: "You can only complete the shift within 15 minutes of end time." });
     }
     //extract location of user and shift and compare
     const shiftCoords = await geocode(shift.location);
@@ -401,17 +417,15 @@ router.post("/complete", verifyToken, async (req, res) => {
     }
 
     shift.status = "completed";
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    shift.employee = user._id; // assign user to shift (maybe useless)
     await shift.save();
-    //create shift in MongoDB
-    await ShiftLog.create({
-      user: userId,
-      shift: shiftId,
-      time: timestamp,
-      location,
-      type: "completed"
-    });
+    console.log("Completed shift saved:", shift);
+    res.json({ message: "Successfully completed shift", shift });
 
-    res.json({ message: "Shift successfully completed." });
 
   } catch (err) {
     console.error(err);
