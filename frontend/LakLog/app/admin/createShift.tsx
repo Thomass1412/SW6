@@ -54,7 +54,7 @@ export default function CreateShift() {
           return;
         }
     
-        let url = "http://192.168.0.154:5000/users/employees";
+        let url = `${API_URL}/users/employees`;
         if (jobTitle && jobTitle !== "None") {
           url += `?jobTitle=${encodeURIComponent(jobTitle)}`;
         }
@@ -187,6 +187,7 @@ export default function CreateShift() {
         <Picker.Item label="Lokation A" value="Lokation A" />
         <Picker.Item label="Lokation B" value="Lokation B" />
         <Picker.Item label="Lokation C" value="Lokation C" />
+        <Picker.Item label="Silkeborggade 21" value="Silkeborggade 21" />
       </Picker>
 
       <Text style={styles.label}>Job Title</Text>

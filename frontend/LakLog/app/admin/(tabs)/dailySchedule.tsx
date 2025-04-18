@@ -6,6 +6,7 @@ import CustomButton from '../../../components/CustomButton';
 import dayjs from 'dayjs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from '@expo/vector-icons';
+import { API_URL } from '../../../config/ipconfig';
 
 export default function DailySchedule() {
   const [shifts, setShifts] = useState([]);
@@ -36,7 +37,7 @@ export default function DailySchedule() {
 
         const formattedDate = selectedDate.format('YYYY-MM-DD');
 
-        const response = await fetch(`http://192.168.0.154:5000/shifts/all-date?date=${formattedDate}`, {
+        const response = await fetch(`${API_URL}/shifts/all-date?date=${formattedDate}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
