@@ -51,7 +51,7 @@ export default function DailySchedule() {
 
         const formattedDate = selectedDate.format('YYYY-MM-DD');
 
-        const response = await fetch(`${API_URL}/shifts/my-shifts?date=${formattedDate}`, {
+        const response = await fetch(`http://192.168.0.153:5000/shifts/my-shifts?date=${formattedDate}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,

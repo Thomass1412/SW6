@@ -50,7 +50,7 @@ export default function EmployeesScreen() {
           return;
         }
 
-        const response = await fetch('http://192.168.0.154:5000/users/employees', {
+        const response = await fetch(`${API_URL}/users/employees`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
