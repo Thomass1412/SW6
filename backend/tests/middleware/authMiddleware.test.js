@@ -2,6 +2,7 @@ const { verifyToken } = require("../../middlewares/authMiddleware");
 
 const mockVerifyIdToken = jest.fn();
 
+// Mock the Firebase admin SDK
 jest.mock("../../config/firebase", () => ({
   auth: () => ({
     verifyIdToken: mockVerifyIdToken,
@@ -9,35 +10,37 @@ jest.mock("../../config/firebase", () => ({
 }));
 
 describe("verifyToken middleware", () => {
-  const mockNext = jest.fn();
   const mockRes = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
   };
+  const mockNext = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("should call next if token is valid", async () => {
-    const mockDecodedToken = { uid: "123", email: "test@example.com" };
+    const mockDecodedToken = { uid: "123abc", email: "test@example.com" };
     mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
 
     const req = {
       headers: {
-        authorization: "Bearer mockToken",
+        authorization: "Bearer valid-token",
       },
     };
 
     await verifyToken(req, mockRes, mockNext);
 
-    expect(mockVerifyIdToken).toHaveBeenCalledWith("mockToken");
+    expect(mockVerifyIdToken).toHaveBeenCalledWith("valid-token");
     expect(req.user).toEqual(mockDecodedToken);
     expect(mockNext).toHaveBeenCalled();
   });
 
   it("should return 403 if no token is provided", async () => {
-    const req = { headers: {} };
+    const req = {
+      headers: {},
+    };
 
     await verifyToken(req, mockRes, mockNext);
 
@@ -51,12 +54,13 @@ describe("verifyToken middleware", () => {
 
     const req = {
       headers: {
-        authorization: "Bearer badToken",
+        authorization: "Bearer invalid-token",
       },
     };
 
     await verifyToken(req, mockRes, mockNext);
 
+    expect(mockVerifyIdToken).toHaveBeenCalledWith("invalid-token");
     expect(mockRes.status).toHaveBeenCalledWith(401);
     expect(mockRes.json).toHaveBeenCalledWith({ message: "Unauthorized" });
     expect(mockNext).not.toHaveBeenCalled();
