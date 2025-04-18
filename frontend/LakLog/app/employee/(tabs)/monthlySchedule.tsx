@@ -42,7 +42,7 @@ const MonthlySchedule = () => {
       const monthStart = date.startOf('month').format('YYYY-MM-DD');
       const monthEnd = date.endOf('month').format('YYYY-MM-DD');
   
-      const response = await fetch(`http://192.168.0.153:5000/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
+      const response = await fetch(`${API_URL}/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
