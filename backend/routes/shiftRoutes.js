@@ -8,6 +8,7 @@ const { geocode, calculateDistanceMeters } = require("../utils/locationUtils"); 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const { generateFairSchedule } = require('../utils/fairScheduler');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -433,6 +434,16 @@ router.post("/complete", verifyToken, async (req, res) => {
   }
 });
 
+// scheduler route to generate fair schedule (conceptual)
+router.post('/preview-fair-schedule', async (req, res) => {
+  try {
+    const result = await generateFairSchedule();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Scheduling failed" });
+  }
+});
 
 
 
