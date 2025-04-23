@@ -33,7 +33,7 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // save session details in local storage
+        // save session details in local storag
         await AsyncStorage.multiSet([
           ['accessToken', data.accessToken],
           ['user', JSON.stringify({
