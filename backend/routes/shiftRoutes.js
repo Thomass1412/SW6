@@ -14,7 +14,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // get all shifts 
-router.get("/", verifyToken, checkAdmin, async (req, res) => {
+router.get("/all-shifts", verifyToken, checkAdmin, async (req, res) => {
     try {
         const shifts = await Shift.find().populate("employee", "name email");
         res.json(shifts);

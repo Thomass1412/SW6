@@ -51,7 +51,11 @@ const MonthlySchedule = () => {
       });
   
       const data = await response.json();
-      const marked = getMarkedDatesFromShifts(data);
+  
+      // filter out unavailability shifts
+      const workShifts = data.filter((shift: any) => shift.status !== 'unavailability');
+  
+      const marked = getMarkedDatesFromShifts(workShifts);
       setMarkedDates(marked);
     } catch (err) {
       console.error('Failed to fetch shifts:', err);

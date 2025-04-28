@@ -9,9 +9,10 @@ interface CustomCalendarProps {
   markedDates?: { [date: string]: any };
   onDateSelect?: (date: string) => void;
   onMonthChange?: (month: dayjs.Dayjs) => void;
+  markingType?: string; // 👈 Add this line
 }
 
-const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDateSelect, onMonthChange }) => {
+const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, markingType, onDateSelect, onMonthChange }) => {
   const { date } = useLocalSearchParams();
   const navigation = useNavigation();
 
@@ -73,6 +74,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ markedDates = {}, onDat
   return (
     <View style={{ flex: 1 }}>
       <Calendar
+        markingType={markingType}
         key={selectedDate.toString()}
         onDayPress={handleDayPress}
         current={selectedDate.format('YYYY-MM-DD')}
