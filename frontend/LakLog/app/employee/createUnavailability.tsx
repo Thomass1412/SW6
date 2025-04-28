@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 
 export default function CreateShift() {
@@ -58,7 +58,7 @@ export default function CreateShift() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/shifts/new-unavailability`, {
+      const response = await fetch(`${BaseURL}/shifts/new-unavailability`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

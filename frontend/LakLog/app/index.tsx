@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../config/firebase";
-import { API_URL } from "@env";
+import {BaseURL} from "../config/api";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ export default function Page() {
 
       console.log("ID Token:", idToken);
 
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${BaseURL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),

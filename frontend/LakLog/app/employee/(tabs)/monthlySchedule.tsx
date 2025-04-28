@@ -5,7 +5,7 @@ import CustomButton from '../../../components/CustomButton';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from "@env";
+import {BaseURL} from "../../../config/api";
 
 
 // convert shift dates to markedDates move to utils
@@ -42,7 +42,7 @@ const MonthlySchedule = () => {
       const monthStart = date.startOf('month').format('YYYY-MM-DD');
       const monthEnd = date.endOf('month').format('YYYY-MM-DD');
   
-      const response = await fetch(`${API_URL}/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
+      const response = await fetch(`${BaseURL}/shifts/my-shifts?start=${monthStart}&end=${monthEnd}`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,

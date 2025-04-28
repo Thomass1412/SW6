@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 import { useLayoutEffect, useEffect, useState } from "react";
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 type Coords = { latitude: number; longitude: number };
 
@@ -35,7 +35,7 @@ export default function SpecificShift() {
       try {
 
         const token = await AsyncStorage.getItem("accessToken");
-        const res = await fetch(`${API_URL}/shifts/${id}`, {
+        const res = await fetch(`${BaseURL}/shifts/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -81,7 +81,7 @@ export default function SpecificShift() {
     const endpoint = shift.status === 'scheduled' ? 'sign-in' : 'complete';
 
     try {
-      const res = await fetch(`${API_URL}/shifts/${endpoint}`, {
+      const res = await fetch(`${BaseURL}/shifts/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

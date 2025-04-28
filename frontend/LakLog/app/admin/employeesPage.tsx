@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from '../../components/CustomButton'; 
 import { router } from 'expo-router';
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 export default function EmployeesScreen() {
   const navigation = useNavigation();
@@ -50,7 +50,7 @@ export default function EmployeesScreen() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/users/employees`, {
+        const response = await fetch(`${BaseURL}/users/employees`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -88,7 +88,7 @@ export default function EmployeesScreen() {
   const handleDeleteEmployee = async (id: string) => {
     const token = await AsyncStorage.getItem("accessToken");
     try {
-      const res = await fetch(`${API_URL}/users/delete/${id}`, {
+      const res = await fetch(`${BaseURL}/users/delete/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

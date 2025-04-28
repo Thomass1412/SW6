@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 const availableRoles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
 
@@ -55,7 +55,7 @@ export default function CreateEmployeeScreen() {
         return;
       }
   
-      const response = await fetch(`${API_URL}/auth/signup`, {
+      const response = await fetch(`${BaseURL}/auth/signup`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

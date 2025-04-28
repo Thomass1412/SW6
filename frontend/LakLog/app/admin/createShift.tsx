@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 export default function CreateShift() {
   const [date, setDate] = useState(new Date());
@@ -54,7 +54,7 @@ export default function CreateShift() {
           return;
         }
     
-        let url = `${API_URL}/users/employees`;
+        let url = `${BaseURL}/users/employees`;
         if (jobTitle && jobTitle !== "None") {
           url += `?jobTitle=${encodeURIComponent(jobTitle)}`;
         }
@@ -102,7 +102,7 @@ export default function CreateShift() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/shifts/create`, {
+      const response = await fetch(`${BaseURL}/shifts/create`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

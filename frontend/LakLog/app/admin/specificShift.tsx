@@ -3,7 +3,7 @@ import {TouchableOpacity, Text, View, ActivityIndicator, StyleSheet, Alert } fro
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
-import { API_URL } from "@env";
+import {BaseURL} from "../../config/api";
 
 export default function AdminShiftDetails() {
   const navigation = useNavigation();
@@ -16,7 +16,7 @@ export default function AdminShiftDetails() {
     const fetchShift = async () => {
       try {
         const token = await AsyncStorage.getItem("accessToken");
-        const response = await fetch(`${API_URL}/shifts/${id}`, {
+        const response = await fetch(`${BaseURL}/shifts/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -99,7 +99,7 @@ export default function AdminShiftDetails() {
                 onPress: async () => {
                     try {
                     const token = await AsyncStorage.getItem("accessToken");
-                    const res = await fetch(`${API_URL}/shifts/delete/${shift._id}`, {
+                    const res = await fetch(`${BaseURL}/shifts/delete/${shift._id}`, {
                         method: "DELETE",
                         headers: {
                         Authorization: `Bearer ${token}`,
