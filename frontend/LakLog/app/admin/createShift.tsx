@@ -84,9 +84,11 @@ export default function CreateShift() {
   }, [jobTitle]);
 
   const handleSubmit = async () => {
+
+    const fixedDate = new Date(date.getTime() + 2 * 60 * 60 * 1000);
     const shiftData = {
       ...(selectedEmployee !== "none" && { employee: selectedEmployee }),
-      date: date.toISOString(),
+      date: fixedDate.toISOString(),
       startTime,
       endTime,
       location,

@@ -43,14 +43,17 @@ export default function CreateShift() {
   const validateTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
 
   const handleSubmit = async () => {
+    const fixedDate = new Date(date.getTime() + 2 * 60 * 60 * 1000);
+
     const shiftData = {
-      date: date.toISOString(),
+      date: fixedDate.toISOString(),
       startTime,
       endTime,
       status: "scheduled",
       repeat,
     };
 
+    console.log("Shift Data:", shiftData);
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
