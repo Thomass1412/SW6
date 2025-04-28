@@ -54,12 +54,50 @@ router.post("/signup", verifyToken, checkAdmin, async (req, res) => {
           pass: process.env.MAIL_PASS,
         },
       });
-  
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en" style="background-color: #FFFAE8;">
+          <head>
+            <meta charset="UTF-8">
+            <title>Welcome to Bagsværd Lakrids</title>
+          </head>
+          <body style="margin:0; padding:0; background-color: #FFFAE8; font-family: Arial, sans-serif;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #FFFAE8; padding: 30px;">
+              <tr>
+                <td align="center">
+                  <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 20px; border-radius: 10px;">
+                    <tr>
+                      <td align="center" style="padding-bottom: 20px;">
+                        <h1 style="color: #FF9500; font-size: 24px;">Welcome to Bagsværd Lakrids!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px; font-size: 16px; color: #333;">
+                        <p>Hi ${name},</p>
+                        <p>Your account has been created successfully!</p>
+                        <p>Please click the button below to set your password and complete your account setup:</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                          <a href="${resetLink}" style="background-color: #FF9500; color: #ffffff; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Set Your Password</a>
+                        </div>
+                        <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
+                        <p style="word-break: break-all;">${resetLink}</p>
+                        <br>
+                        <p style="font-size: 12px; color: #999;">This link expires in 1 hour.</p>
+                        <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} Bagsværd Lakrids</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+        `;
       await transporter.sendMail({
         from: `No Reply <${process.env.MAIL_USER}>`,
         to: email,
         subject: "Set Your Password",
-        text: `Hi ${name},\n\nYour account has been created.\nClick the link below to set your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\n- Your Team`,
+        html: htmlContent,
       });
   
       res.status(201).json({ message: "User created and email sent", user: newUser });
