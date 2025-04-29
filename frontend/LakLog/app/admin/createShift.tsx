@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import dayjs from "dayjs";
 import { useNavigation } from "@react-navigation/native";
 import {BaseURL} from "../../config/api";
+import { Shift } from "../../types";
 
 export default function CreateShift() {
   const [date, setDate] = useState(new Date());
@@ -23,6 +24,7 @@ export default function CreateShift() {
   const [endTimeError, setEndTimeError] = useState("");
   const navigation = useNavigation();
   const router = useRouter();
+  const [shiftsOnSelectedDate, setShiftsOnSelectedDate] = useState<Shift[]>([]);
 
 
   useLayoutEffect(() => {
@@ -42,6 +44,56 @@ export default function CreateShift() {
       }
     }
   }, [rawPrefillDate]);
+  
+  const timesOverlap = (startA: string, endA: string, startB: string, endB: string): boolean => {
+    return !(endA <= startB || startA >= endB);
+  };
+  
+  useEffect(() => {
+    const fetchShiftsForDate = async () => {
+      try {
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          console.error("No token found!");
+          return;
+        }
+  
+        const selectedDateFormatted = dayjs(date).format("YYYY-MM-DD");
+  
+        const response = await fetch(`${BaseURL}/shifts/all-date?date=${selectedDateFormatted}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        const data = await response.json();
+        setShiftsOnSelectedDate(data);
+      } catch (error) {
+        console.error("Failed to fetch shifts for selected date", error);
+      }
+    };
+  
+    if (date) {
+      fetchShiftsForDate();
+    }
+  }, [date, startTime, endTime]);
+
+  const availableEmployees = employees.filter((emp) => {
+    const employeeShifts = shiftsOnSelectedDate.filter(
+      (shift) => shift.employee?._id === emp._id
+    );
+  
+    if (employeeShifts.length === 0) return true;
+  
+    if (!startTime || !endTime) return true;
+  
+    return !employeeShifts.some((shift) =>
+      timesOverlap(shift.startTime, shift.endTime, startTime, endTime)
+    );
+  });
+  
 
   const validateTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
 
@@ -207,7 +259,7 @@ export default function CreateShift() {
         style={styles.picker}
       >
         <Picker.Item label="None" value="none" />
-        {employees.map((emp) => (
+        {availableEmployees.map((emp) => (
           <Picker.Item key={emp._id} label={emp.name} value={emp._id} />
         ))}
       </Picker>
