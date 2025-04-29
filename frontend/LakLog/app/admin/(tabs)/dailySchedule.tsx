@@ -109,7 +109,22 @@ export default function DailySchedule() {
     });
   }, [navigation, selectedDate, goToPreviousDay, goToNextDay]);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+  const styles = StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: '#FFFAE8',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#f28a0a" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>

@@ -111,45 +111,24 @@ export default function DailySchedule() {
     });
   }, [navigation, selectedDate, goToPreviousDay, goToNextDay]);
 
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-
-  const styles = StyleSheet.create({
-    button: {
-      backgroundColor: "#FFDDAD",
-      padding: 10,
-      marginVertical: 10,
-      borderRadius: 20,
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-      borderWidth: 2, 
-      borderColor: "#000",
-    },
-    floatingButton: {
-      position: 'absolute',
-      bottom: 30,
-      right: 30,
-      backgroundColor: '#F7CB8C',
-      padding: 15,
-      borderRadius: 20,
-      shadowColor: '#000',
-      shadowOpacity: 0.3,
-      shadowRadius: 5,
-      elevation: 5,
-      flexDirection: 'row',
+const styles = StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: '#FFFAE8',
+      justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 2, 
-      borderColor: '#000',
-    },
-    floatingButtonText: {
-      color: '#000',
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginLeft: 5, 
     },
   });
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#f28a0a" />
+      </View>
+    );
+  }
+
+  
   return (
     <View style={{ backgroundColor: '#FFFAE8', flex: 1 }}>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
