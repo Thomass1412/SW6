@@ -142,7 +142,7 @@ export default function EmployeesScreen() {
             <Text style={styles.modalName}>{selectedEmployee.name}</Text>
             <Text>Email: {selectedEmployee.email}</Text>
             <Text>Phone: {selectedEmployee.phone || "N/A"}</Text>
-            <Text>Roles: {selectedEmployee.jobTitle?.join(', ') || "None"}</Text>
+            <Text>Roles: {selectedEmployee.jobTitle?.join(', \n') || "None"}</Text>
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
