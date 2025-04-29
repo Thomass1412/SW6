@@ -13,15 +13,56 @@ const { generateFairSchedule } = require('../utils/fairScheduler');
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// get all shifts 
+// get all shifts
 router.get("/all-shifts", verifyToken, checkAdmin, async (req, res) => {
-    try {
-        const shifts = await Shift.find().populate("employee", "name email");
-        res.json(shifts);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+  try {
+    const { start, end, unassigned } = req.query;
+
+    let filter = {};
+
+    // Optional: filter by date range if provided (copying idea from /my-shifts)
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      filter.date = { $gte: startDate, $lte: endDate };
     }
+
+    // If "unassigned" query is true, only find shifts with no employee
+    if (unassigned === 'true') {
+      filter.employee = { $exists: false };
+    }
+
+    const shifts = await Shift.find(filter).populate("employee", "name email");
+    res.json(shifts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
+
+// Get all completed shifts from a date onwards
+router.get("/completed", verifyToken, checkAdmin, async (req, res) => {
+  console.log("backend called");
+  try {
+    const { from } = req.query;
+
+    if (!from) {
+      return res.status(400).json({ error: "Missing 'from' date query parameter" });
+    }
+
+    const fromDate = new Date(from);
+
+    const shifts = await Shift.find({
+      status: "completed",
+      date: { $gte: fromDate }
+    }).populate("employee", "name email"); 
+
+    res.json(shifts);
+  } catch (error) {
+    console.error("Error fetching completed shifts:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 //user route to fetch their shifts
 router.get("/my-shifts", verifyToken, async (req, res) => {
