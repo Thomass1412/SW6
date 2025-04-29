@@ -35,13 +35,11 @@ export default function AdminShiftDetails() {
   }, []);
 
   useLayoutEffect(() => {
-    if (shift?.employee?.name) {
-      navigation.setOptions({
-        title: shift.employee.name,
-        headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
-        headerTitleAlign: 'center',
-      });
-    }
+    navigation.setOptions({
+      title: shift?.employee?.name ? shift.employee.name : "Unassigned Shift",
+      headerStyle: { height: 80, backgroundColor: '#F7CB8C' },
+      headerTitleAlign: 'center',
+    });
   }, [navigation, shift]);
 
   if (loading || !shift) {
