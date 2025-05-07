@@ -1,3 +1,3 @@
-import { API_URL } from "@env";
 
-export const BaseURL = API_URL;
+
+export const BaseURL = "http://192.168.0.153:5000/";
