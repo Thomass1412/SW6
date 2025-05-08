@@ -41,7 +41,6 @@ router.get("/all-shifts", verifyToken, checkAdmin, async (req, res) => {
 
 // Get all completed shifts from a date onwards
 router.get("/completed", verifyToken, checkAdmin, async (req, res) => {
-  console.log("backend called");
   try {
     const { from } = req.query;
 
@@ -50,11 +49,21 @@ router.get("/completed", verifyToken, checkAdmin, async (req, res) => {
     }
 
     const fromDate = new Date(from);
+    if (isNaN(fromDate.getTime())) {
+      return res.status(400).json({ error: "Invalid 'from' date format" });
+    }
+
+    // Calculate upper bound: one month after fromDate
+    const toDate = new Date(fromDate);
+    toDate.setMonth(toDate.getMonth() + 1);
 
     const shifts = await Shift.find({
       status: "completed",
-      date: { $gte: fromDate }
-    }).populate("employee", "name email"); 
+      date: {
+        $gte: fromDate,
+        $lte: toDate,
+      },
+    }).populate("employee", "name email");
 
     res.json(shifts);
   } catch (error) {
@@ -62,6 +71,7 @@ router.get("/completed", verifyToken, checkAdmin, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 //user route to fetch their shifts
