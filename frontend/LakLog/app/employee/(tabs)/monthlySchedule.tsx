@@ -6,6 +6,9 @@ import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BaseURL} from "../../../config/api";
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 
 // convert shift dates to markedDates move to utils
@@ -19,6 +22,41 @@ const getMarkedDatesFromShifts = (shifts: { date: string }[]) => {
     };
   });
   return result;
+};
+
+const registerForPushNotifications = async () => {
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.warn('Push notification permission not granted');
+      return;
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    });
+
+    const pushToken = tokenData.data;
+    const authToken = await AsyncStorage.getItem("accessToken");
+
+    await fetch(`${BaseURL}/users/push-token`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${authToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ pushToken }),
+    });
+  } catch (error) {
+    console.error('Failed to register for push notifications:', error);
+  }
 };
 
 const MonthlySchedule = () => {
@@ -64,6 +102,7 @@ const MonthlySchedule = () => {
 
   useEffect(() => {
     fetchShiftsForMonth(dayjs());
+    registerForPushNotifications();
   }, []);
 
   return (

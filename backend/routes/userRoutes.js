@@ -35,4 +35,16 @@ router.delete("/delete/:id", verifyToken, checkAdmin, async (req, res) => {
     }
 });
 
+// POST /api/users/:id/push-token
+router.post('/:id/push-token', async (req, res) => {
+  const { pushToken } = req.body;
+  try {
+    await User.findByIdAndUpdate(req.params.id, { pushToken });
+    res.status(200).json({ message: 'Push token saved.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not save token' });
+  }
+});
+
+
 module.exports = router;
