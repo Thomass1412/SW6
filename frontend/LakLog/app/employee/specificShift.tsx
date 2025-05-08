@@ -163,6 +163,11 @@ export default function SpecificShift() {
         onSwipeSuccess={handleSwipe}
         shouldResetAfterSuccess={true}
       />
+      {swipeDisabled && (
+        <Text style={styles.warningText}>
+          You can only sign in at the correct location and time
+        </Text>
+      )}
     </View>
   );
 }
@@ -211,6 +216,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     textDecorationLine: "underline",
+    fontWeight: "500",
+  },
+  warningText: {
+    color: "#000",
+    textAlign: "center",
+    marginTop: 20,
     fontWeight: "500",
   },
   loaderContainer: {
