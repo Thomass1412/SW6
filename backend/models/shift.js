@@ -7,13 +7,13 @@ const shiftSchema = new mongoose.Schema({
     endTime: { type: String, required: true },
     location: {
         type: String,
-        enum: ["Lokation A", "Lokation B", "Lokation C", "Silkeborggade 21"],
+        enum: ["Bagsværd Hovedgade 122", "Ankervej 1", "A. C. Meyers Vænge 15", "Silkeborggade 21"],
         default: undefined,
         required: false
     },
     jobTitle: {
         type: String,
-        enum: ["Licorice Making", "Licorice Selling", "Cleaning Machines"],
+        enum: ["Production", "Licorice Maker"],
         default: undefined,
         required: false
     },

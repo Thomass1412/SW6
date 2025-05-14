@@ -88,7 +88,7 @@ router.put("/update/:id", verifyToken, checkAdmin, async (req, res) => {
     }
 
     // Validate jobTitle entries against allowed roles
-    const validRoles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
+    const validRoles = ["Production", "Licorice Maker"];
     const invalidRoles = jobTitle.filter(role => !validRoles.includes(role));
     if (invalidRoles.length > 0) {
       return res.status(400).json({ message: `Invalid job roles: ${invalidRoles.join(", ")}` });

@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import {BaseURL} from "../../config/api";
 
 const locations = ["Lokation A", "Lokation B", "Lokation C", "Silkeborggade 21"];
-const jobTitles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
+const jobTitles = ["Production", "Licorice Maker"];
 const statuses = ["scheduled", "signed-in", "completed", "canceled"];
 
 export default function UpdateShiftScreen() {

@@ -238,18 +238,17 @@ export default function CreateShift() {
       <Text style={styles.label}>Location</Text>
       <Picker selectedValue={location} onValueChange={setLocation} style={styles.picker}>
         <Picker.Item label="None" value="" />
-        <Picker.Item label="Lokation A" value="Lokation A" />
-        <Picker.Item label="Lokation B" value="Lokation B" />
-        <Picker.Item label="Lokation C" value="Lokation C" />
+        <Picker.Item label="Bagsværd Hovedgade 122" value="Bagsværd Hovedgade 122" />
+        <Picker.Item label="Ankervej 1" value="Ankervej 1" />
+        <Picker.Item label="A. C. Meyers Vænge 15" value="A. C. Meyers Vænge 15" />
         <Picker.Item label="Silkeborggade 21" value="Silkeborggade 21" />
       </Picker>
 
       <Text style={styles.label}>Job Title</Text>
       <Picker selectedValue={jobTitle} onValueChange={handleJobTitleChange} style={styles.picker}>
       <Picker.Item label="None" value="None" />
-        <Picker.Item label="Licorice Making" value="Licorice Making" />
-        <Picker.Item label="Licorice Selling" value="Licorice Selling" />
-        <Picker.Item label="Cleaning Machines" value="Cleaning Machines" />
+        <Picker.Item label="Licorice Maker" value="Licorice Maker" />
+        <Picker.Item label="Production" value="Production" />
       </Picker>
 
       <Text style={styles.label}>Assign to Employee (Optional)</Text>

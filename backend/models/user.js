@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["Admin", "User"], default: "User" },
-    jobTitle: { type: [String], enum: ["Licorice Making", "Licorice Selling", "Cleaning Machines"], default: [] },
+    jobTitle: { type: [String], enum: ["Production", "Licorice Maker"], default: [] },
     hoursPerWeek: { type: Number, default: 40 },
     pushToken: { type: String }
 }, { timestamps: true });

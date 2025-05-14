@@ -10,10 +10,13 @@ export function useAuth() {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        console.log("🔍 useAuth() checking for stored accessToken");
         const storedUser = await AsyncStorage.getItem("user");
         const accessToken = await AsyncStorage.getItem("accessToken");
+        console.log("🔑 Found token in storage:", accessToken);
         const loginTime = await AsyncStorage.getItem("loginTime");
         const staySignedIn = await AsyncStorage.getItem("staySignedIn");
+        
 
         if (storedUser && accessToken && loginTime) {
           const loginTimestamp = parseInt(loginTime, 10);
@@ -36,6 +39,7 @@ export function useAuth() {
         }
       } catch (error) {
         console.error("Failed to load auth state", error);
+        
       } finally {
         setLoading(false);
       }

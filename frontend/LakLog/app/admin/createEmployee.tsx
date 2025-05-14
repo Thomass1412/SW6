@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BaseURL} from "../../config/api";
 
-const availableRoles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
+const availableRoles = ["Production", "Licorice Maker"];
 
 export default function CreateEmployeeScreen() {
   const navigation = useNavigation();
