@@ -146,7 +146,7 @@ export default function EmployeesScreen() {
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                onPress={() => Alert.alert("This takes you to the edit employee page")}
+                onPress={() => router.push("/admin/editEmployee")}
                 style={styles.editButton}
               >
                 <Text style={styles.editText}>Edit Employee</Text>
