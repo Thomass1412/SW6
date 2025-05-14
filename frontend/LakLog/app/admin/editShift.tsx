@@ -9,7 +9,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import {BaseURL} from "../../config/api";
 
-const locations = ["Lokation A", "Lokation B", "Lokation C", "Silkeborggade 21"];
+const locations = ["Bagsværd Hovedgade 122", "Ankervej 1", "A. C. Meyers Vænge 15", "Silkeborggade 19"];
 const jobTitles = ["Production", "Licorice Maker"];
 const statuses = ["scheduled", "signed-in", "completed", "canceled"];
 

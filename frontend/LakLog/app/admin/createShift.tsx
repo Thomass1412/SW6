@@ -241,7 +241,7 @@ export default function CreateShift() {
         <Picker.Item label="Bagsværd Hovedgade 122" value="Bagsværd Hovedgade 122" />
         <Picker.Item label="Ankervej 1" value="Ankervej 1" />
         <Picker.Item label="A. C. Meyers Vænge 15" value="A. C. Meyers Vænge 15" />
-        <Picker.Item label="Silkeborggade 21" value="Silkeborggade 21" />
+        <Picker.Item label="Silkeborggade 21" value="Silkeborggade 19" />
       </Picker>
 
       <Text style={styles.label}>Job Title</Text>

@@ -7,7 +7,7 @@ const shiftSchema = new mongoose.Schema({
     endTime: { type: String, required: true },
     location: {
         type: String,
-        enum: ["Bagsværd Hovedgade 122", "Ankervej 1", "A. C. Meyers Vænge 15", "Silkeborggade 21"],
+        enum: ["Bagsværd Hovedgade 122", "Ankervej 1", "A. C. Meyers Vænge 15", "Silkeborggade 19"],
         default: undefined,
         required: false
     },
