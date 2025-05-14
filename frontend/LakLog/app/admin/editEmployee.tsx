@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {BaseURL} from "../../config/api";
+import { BaseURL } from '../../config/api';
 
 const availableRoles = ["Licorice Making", "Licorice Selling", "Cleaning Machines"];
 
-export default function CreateEmployeeScreen() {
+export default function EditEmployeeScreen() {
   const navigation = useNavigation();
   const router = useRouter();
+  const { id } = useLocalSearchParams(); // employee ID passed via route
+  const [loading, setLoading] = useState(true);
+
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,7 +30,7 @@ export default function CreateEmployeeScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'New Employee',
+      title: 'Edit Employee',
       headerStyle: {
         backgroundColor: '#F7CB8C',
         height: 80,
@@ -39,6 +43,33 @@ export default function CreateEmployeeScreen() {
     });
   }, [navigation]);
 
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) throw new Error('No token found');
+        const res = await fetch(`${BaseURL}/users/get-user/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch employee');
+        const data = await res.json();
+        setName(data.name);
+        setEmail(data.email);
+        setPhone(data.phone);
+        setSelectedRoles(data.jobTitle || []);
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Error", "Failed to load employee data.");
+        router.back();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployee();
+  }, [id]);
+
   const toggleRole = (role: string) => {
     setSelectedRoles((prev) =>
       prev.includes(role)
@@ -47,19 +78,16 @@ export default function CreateEmployeeScreen() {
     );
   };
 
-  const handleCreate = async () => {
+  const handleUpdate = async () => {
     try {
-      const token = await AsyncStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No token found!");
-        return;
-      }
-  
-      const response = await fetch(`${BaseURL}/auth/signup`, {
-        method: "POST",
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) return;
+
+      const res = await fetch(`${BaseURL}/users/update/${id}`, {
+        method: 'PUT',
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name,
@@ -68,36 +96,37 @@ export default function CreateEmployeeScreen() {
           jobTitle: selectedRoles,
         }),
       });
-  
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Employee created:", result);
-        Alert.alert("Success", "Employee created successfully!");
+
+      if (res.ok) {
+        Alert.alert("Success", "Employee updated!");
         router.back();
       } else {
-        const error = await response.json();
-        Alert.alert("Error", error.message || "Failed to create employee.");
+        const error = await res.json();
+        Alert.alert("Error", error.message || "Failed to update.");
       }
-    } catch (error) {
-      console.error("Failed to create employee", error);
+    } catch (err) {
+      console.error("Update error", err);
       Alert.alert("Error", "An unexpected error occurred.");
     }
   };
 
-
   const isFormValid =
-    name &&
-    email.trim() &&
-    phone.trim();
+    !!name &&
+    !!(typeof email === "string" ? email.trim() : "") &&
+    !!(typeof phone === "string" ? phone.trim() : "");
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#F7CB8C" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Name</Text>
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
+      <TextInput value={name} onChangeText={setName} style={styles.input} />
 
       <Text style={styles.label}>Email</Text>
       <TextInput
@@ -133,9 +162,10 @@ export default function CreateEmployeeScreen() {
 
       <TouchableOpacity
         style={[styles.createButton, { opacity: isFormValid ? 1 : 0.5 }]}
-        onPress={handleCreate}
-        disabled={!isFormValid}>
-        <Text style={styles.createButtonText}>Create Employee</Text>
+        onPress={handleUpdate}
+        disabled={!isFormValid}
+      >
+        <Text style={styles.createButtonText}>Update Employee</Text>
       </TouchableOpacity>
     </View>
   );
@@ -185,5 +215,11 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF7E6',
   },
 });

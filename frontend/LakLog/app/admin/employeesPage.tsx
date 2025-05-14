@@ -146,12 +146,11 @@ export default function EmployeesScreen() {
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                onPress={() => router.push("/admin/editEmployee")}
+                onPress={() => router.push({ pathname: "/admin/editEmployee", params: { id: selectedEmployee._id } })}
                 style={styles.editButton}
               >
                 <Text style={styles.editText}>Edit Employee</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 onPress={() =>
                   Alert.alert(
