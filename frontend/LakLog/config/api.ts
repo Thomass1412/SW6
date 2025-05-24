@@ -1,3 +1,3 @@
 
 
-export const BaseURL = "https://sw6backend.onrender.com";
+export const BaseURL = "https://192.168.0.153:5000";
