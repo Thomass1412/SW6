@@ -16,9 +16,11 @@ type Employee = {
 type Shift = {
   _id: string;
   jobTitle: string;
-  start: string;
-  end: string;
+  date: string;
+  startTime: string;
+  endTime: string;
   employee: Employee;
+  location?: string;
 };
 
 type SaleShiftCardProps = {
@@ -26,21 +28,32 @@ type SaleShiftCardProps = {
   onPress: (shift: Shift) => void;
 };
 
-const SaleShiftCard: React.FC<SaleShiftCardProps> = ({ shift, onPress }) => (
-  <TouchableOpacity
-    style={styles.card}
-    onPress={() => onPress(shift)}
-    activeOpacity={0.85}
-  >
-    <Text style={styles.title}>{shift.jobTitle}</Text>
-    <Text style={styles.time}>
-      {dayjs(shift.start).format('DD MMM YYYY, HH:mm')} – {dayjs(shift.end).format('HH:mm')}
-    </Text>
-    <Text style={styles.postedBy}>
-      Posted by: {shift.employee?.name || "Unknown"}
-    </Text>
-  </TouchableOpacity>
-);
+const SaleShiftCard: React.FC<SaleShiftCardProps> = ({ shift, onPress }) => {
+  // Parse date + time correctly
+  const datePart = shift.date.substring(0, 10); // "YYYY-MM-DD"
+  const startDateTime = dayjs(`${datePart}T${shift.startTime}`);
+  const endDateTime = dayjs(`${datePart}T${shift.endTime}`);
+
+  return (
+    <TouchableOpacity
+        style={styles.card}
+        onPress={() => onPress(shift)}
+        activeOpacity={0.85}
+    >
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+            <Text style={[styles.title, { marginBottom: 0 }]}>{shift.jobTitle}</Text>
+            <Text style={styles.postedBy}>
+                {"  "}Posted by: {shift.employee?.name || "Unknown"}
+            </Text>
+        </View>
+        <Text style={styles.time}>
+            {startDateTime.format('DD MMM YYYY, HH:mm')} – {endDateTime.format('HH:mm')}
+        </Text>
+        <Text style={styles.location}>Location: {shift.location || "Unknown"}</Text>
+    </TouchableOpacity>
+  );
+};
+
 
 export default function ShiftSales() {
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -94,7 +107,7 @@ export default function ShiftSales() {
   const handleAcceptShift = useCallback((shift: Shift) => {
     Alert.alert(
       "Accept this shift?",
-      `Do you want to take this shift as your own?\n\n${shift.jobTitle}\n${dayjs(shift.start).format('DD MMM YYYY, HH:mm')} – ${dayjs(shift.end).format('HH:mm')}`,
+      `Do you want to take this shift as your own?\n\n${shift.jobTitle}`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -119,8 +132,6 @@ export default function ShiftSales() {
     );
   }, []);
 
-  // Backend call to accept the shift
-  // Backend call to accept the shift
   // Backend call to accept the shift
   const confirmAcceptShift = async (shiftId: string) => {
     setAccepting(true);
@@ -217,6 +228,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 2,
+  },
+  location: {
+    fontSize: 14,
+    color: '#676767',
+    marginBottom: 6,
   },
   time: {
     fontSize: 16,
