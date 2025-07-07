@@ -120,6 +120,66 @@ router.get("/my-shifts", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/forSale", verifyToken, async (req, res) => {
+  try {
+    // fetch user and their job titles
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const titles = user.jobTitle || [];
+    // find shifts marked forSale, matching title, not self-posted
+    const shifts = await Shift.find({
+      forSale: true,
+      jobTitle: { $in: titles },
+      employee: { $ne: user._id }
+    }).populate("employee", "name email");
+    res.json(shifts);
+  } catch (error) {
+    console.error("Error fetching for-sale shifts:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// NEW: Mark a shift for sale by its assigned employee
+router.patch("/:id/sell", verifyToken, async (req, res) => {
+  try {
+    const shift = await Shift.findById(req.params.id);
+    if (!shift) return res.status(404).json({ error: "Shift not found" });
+    // only the current employee can sell
+    const user = await User.findOne({ email: req.user.email });
+    if (!user || shift.employee.toString() !== user._id.toString()) {
+      return res.status(403).json({ error: "Not authorized to sell this shift" });
+    }
+    shift.forSale = true;
+    await shift.save();
+    res.json(shift);
+  } catch (error) {
+    console.error("Error selling shift:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// NEW: Claim a for-sale shift
+router.patch("/:id/claim", verifyToken, async (req, res) => {
+  try {
+    const shift = await Shift.findById(req.params.id);
+    if (!shift || !shift.forSale) {
+      return res.status(400).json({ error: "Shift not available for claim" });
+    }
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    // assign to new user
+    shift.employee = user._id;
+    shift.forSale = false;
+    shift.status = "scheduled";
+    await shift.save();
+    res.json(shift);
+  } catch (error) {
+    console.error("Error claiming shift:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Get all shifts from a specific date
 router.get("/all-date", verifyToken, checkAdmin, async (req, res) => {
     try {

@@ -17,7 +17,8 @@ const shiftSchema = new mongoose.Schema({
         default: undefined,
         required: false
     },
-    status: { type: String, enum: ["scheduled", "signed-in", "completed", "canceled", "unavailability"], default: "scheduled" }
+    status: { type: String, enum: ["scheduled", "signed-in", "completed", "canceled", "unavailability"], default: "scheduled" },
+    forSale: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Shift", shiftSchema);

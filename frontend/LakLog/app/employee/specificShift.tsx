@@ -135,7 +135,7 @@ export default function SpecificShift() {
           <Text style={styles.value}>{shift.jobTitle}</Text>
         </View>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert("Sell Shift", "Feature coming soon!")} disabled={shift.status !== 'scheduled'}>
           <Text style={styles.sellText}>Sell Shift</Text>
         </TouchableOpacity>
       </View>
