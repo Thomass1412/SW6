@@ -159,7 +159,7 @@ router.patch("/:id/sell", verifyToken, async (req, res) => {
 });
 
 // NEW: Claim a for-sale shift
-router.patch("/:id/claim", verifyToken, async (req, res) => {
+router.patch("/claim/:id", verifyToken, async (req, res) => {
   try {
     const shift = await Shift.findById(req.params.id);
     if (!shift || !shift.forSale) {

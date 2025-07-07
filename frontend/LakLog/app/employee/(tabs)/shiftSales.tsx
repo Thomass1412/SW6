@@ -1,104 +1,166 @@
-// ShiftSales.tsx
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BaseURL } from '../../../config/api';
-import ShiftCard from '../../../components/shiftCard';
-import { Shift } from '../../../types';
+import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
+import { Text, TouchableOpacity, View, ActivityIndicator, StyleSheet, FlatList, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from '@expo/vector-icons';
+import { BaseURL } from "../../../config/api";
+import dayjs from 'dayjs';
+
+type Employee = {
+  name?: string;
+  email?: string;
+  _id?: string;
+};
+
+type Shift = {
+  _id: string;
+  jobTitle: string;
+  start: string;
+  end: string;
+  employee: Employee;
+};
+
+type SaleShiftCardProps = {
+  shift: Shift;
+  onPress: (shift: Shift) => void;
+};
+
+const SaleShiftCard: React.FC<SaleShiftCardProps> = ({ shift, onPress }) => (
+  <TouchableOpacity
+    style={styles.card}
+    onPress={() => onPress(shift)}
+    activeOpacity={0.85}
+  >
+    <Text style={styles.title}>{shift.jobTitle}</Text>
+    <Text style={styles.time}>
+      {dayjs(shift.start).format('DD MMM YYYY, HH:mm')} – {dayjs(shift.end).format('HH:mm')}
+    </Text>
+    <Text style={styles.postedBy}>
+      Posted by: {shift.employee?.name || "Unknown"}
+    </Text>
+  </TouchableOpacity>
+);
 
 export default function ShiftSales() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [jobTitles, setJobTitles] = useState<string[]>([]);
-  const [token, setToken] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [error, setError] = useState('');
+  const [accepting, setAccepting] = useState(false);
+  const navigation = useNavigation();
 
-  // load token, role & jobTitles once
-  useEffect(() => {
-    (async () => {
-      const [t, role, jt] = await Promise.all([
-        AsyncStorage.getItem('accessToken'),
-        AsyncStorage.getItem('userRole'),
-        AsyncStorage.getItem('userJobTitles'),
-      ]);
-      setToken(t);
-      setIsAdmin(role === 'Admin');
-      try {
-        setJobTitles(jt ? JSON.parse(jt) : []);
-      } catch {
-        setJobTitles([]);
-      }
-    })();
-  }, []);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle: { backgroundColor: '#F7CB8C' },
+      headerTitle: 'Shifts for Sale',
+      headerTitleAlign: 'center',
+      
+    });
+  }, [navigation]);
 
-  // whenever token or jobTitles load, fetch for-sale shifts
   useEffect(() => {
-    if (!token || jobTitles.length === 0) {
-      setLoading(false);
-      return;
-    }
-    const fetchForSale = async () => {
+    const fetchShiftsForSale = async () => {
       setLoading(true);
+      setError('');
       try {
-        // build ?jobTitle=...&jobTitle=...
-        const qs = jobTitles.map(t => `jobTitle=${encodeURIComponent(t)}`).join('&');
-        const res = await fetch(`${BaseURL}/shifts/forSale?${qs}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) throw new Error("No token found!");
+
+        const response = await fetch(`${BaseURL}/shifts/forSale`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: Shift[] = await res.json();
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`);
+        }
+
+        const data = await response.json();
         setShifts(data);
-      } catch (err) {
-        console.error('Error loading for-sale shifts:', err);
-        Alert.alert('Error', 'Kunne ikke hente ledige vagter.');
+      } catch (err: any) {
+        setError(err.message || "Could not fetch shifts for sale.");
       } finally {
         setLoading(false);
       }
     };
-    fetchForSale();
-  }, [token, jobTitles]);
 
-  // claim a shift
-  const handleTake = (shiftId: string) => {
+    fetchShiftsForSale();
+  }, []);
+
+  // Handler to accept a shift with double confirmation
+  const handleAcceptShift = useCallback((shift: Shift) => {
     Alert.alert(
-      'Tag vagt?',
-      'Er du sikker på, du vil overtage denne vagt?',
+      "Accept this shift?",
+      `Do you want to take this shift as your own?\n\n${shift.jobTitle}\n${dayjs(shift.start).format('DD MMM YYYY, HH:mm')} – ${dayjs(shift.end).format('HH:mm')}`,
       [
-        { text: 'Annuller', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Ja, tag den',
-          onPress: async () => {
-            if (!token) return;
-            try {
-              const res = await fetch(`${BaseURL}/shifts/${shiftId}/claim`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              setShifts(shifts.filter(s => s._id !== shiftId));
-              Alert.alert('Succes', 'Du har overtaget vagten.');
-            } catch (err) {
-              console.error('Claim shift failed:', err);
-              Alert.alert('Fejl', 'Kunne ikke overtage vagten.');
-            }
-          },
-        },
-      ],
+          text: "Yes",
+          onPress: () => {
+            // Second confirmation
+            Alert.alert(
+              "Are you sure?",
+              "This action cannot be undone.",
+              [
+                { text: "No", style: "cancel" },
+                {
+                  text: "Yes, take shift",
+                  style: "destructive",
+                  onPress: () => confirmAcceptShift(shift._id)
+                }
+              ]
+            );
+          }
+        }
+      ]
     );
-  };
+  }, []);
 
-  if (loading) {
+  // Backend call to accept the shift
+  // Backend call to accept the shift
+  // Backend call to accept the shift
+  const confirmAcceptShift = async (shiftId: string) => {
+    setAccepting(true);
+    try {
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) throw new Error("No token found!");
+
+        const response = await fetch(`${BaseURL}/shifts/claim/${shiftId}`, {
+        method: "PATCH", // <--- PATCH, not POST
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        });
+
+        if (!response.ok) {
+        // Try to parse JSON error if possible, fallback to plain text
+        let errMsg = "";
+        try {
+            const errorData = await response.json();
+            errMsg = errorData.error || "";
+        } catch {
+            errMsg = await response.text();
+        }
+        throw new Error(errMsg || "Failed to claim shift.");
+        }
+
+        // Remove the shift from the list after success
+        setShifts(prev => prev.filter(s => s._id !== shiftId));
+        Alert.alert("Success", "You have taken this shift.");
+    } catch (err: any) {
+        Alert.alert("Error", err.message || "Could not claim the shift.");
+    } finally {
+        setAccepting(false);
+    }
+};
+
+
+
+  if (loading || accepting) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#f28a0a" />
@@ -106,32 +168,30 @@ export default function ShiftSales() {
     );
   }
 
-  if (shifts.length === 0) {
+  if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.emptyText}>Ingen ledige vagter lige nu.</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: 'red' }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Ledige Vagter</Text>
-      <FlatList
-        data={shifts}
-        keyExtractor={item => item._id}
-        renderItem={({ item }) => (
-          <View>
-            <ShiftCard shift={item} isAdmin={false} />
-            <TouchableOpacity
-              style={styles.takeBtn}
-              onPress={() => handleTake(item._id)}
-            >
-              <Text style={styles.takeText}>Tag vagt</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+    <View style={{ backgroundColor: '#FFFAE8', flex: 1, paddingHorizontal: 10, paddingTop: 16 }}>
+      {shifts.length === 0 ? (
+        <Text style={{ fontSize: 18, fontWeight: "bold", textAlign: 'center' }}>
+          No shifts for sale
+        </Text>
+      ) : (
+        <FlatList
+          data={shifts}
+          keyExtractor={item => item._id}
+          renderItem={({ item }) => (
+            <SaleShiftCard shift={item} onPress={handleAcceptShift} />
+          )}
+          contentContainerStyle={{ paddingBottom: 24 }}
+        />
+      )}
     </View>
   );
 }
@@ -143,32 +203,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#FFFAE8',
+  card: {
+    backgroundColor: '#FFF6DF',
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
   },
   title: {
-    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptyText: {
-    marginTop: 40,
     fontSize: 18,
-    textAlign: 'center',
-    color: '#555',
+    marginBottom: 2,
   },
-  takeBtn: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
-    marginVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
+  time: {
+    fontSize: 16,
+    color: '#8E7B60',
+    marginBottom: 4,
   },
-  takeText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  postedBy: {
+    fontSize: 14,
+    color: '#676767',
+  }
 });

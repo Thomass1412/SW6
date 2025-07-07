@@ -107,6 +107,26 @@ export default function SpecificShift() {
     }
   };
 
+  const handleSell = async (shiftId: string) => {
+  try {
+    const token = await AsyncStorage.getItem('accessToken');
+    if (!token) throw new Error('No token');
+    const res = await fetch(`${BaseURL}/shifts/${shiftId}/sell`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    Alert.alert('Vagt sat til salg', 'Din vagt er nu tilgængelig for kolleger.');
+    // TODO: update your local shifts state here (e.g. remove or mark forSale)
+  } catch (err) {
+    console.error('Sell shift failed:', err);
+    Alert.alert('Fejl', 'Kunne ikke sætte vagten til salg.');
+  }
+};
+
   if (!shift || loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -135,8 +155,15 @@ export default function SpecificShift() {
           <Text style={styles.value}>{shift.jobTitle}</Text>
         </View>
 
-        <TouchableOpacity onPress={() => Alert.alert("Sell Shift", "Feature coming soon!")} disabled={shift.status !== 'scheduled'}>
-          <Text style={styles.sellText}>Sell Shift</Text>
+
+        <TouchableOpacity
+          onPress={() => handleSell(shift._id)}
+          disabled={shift.status !== 'scheduled' || shift.forSale}
+          style={[styles.sellText, shift.status !== 'scheduled' || shift.forSale ? styles.sellText : null]}
+        >
+          <Text style={styles.sellText}>
+            { shift.forSale ? 'Already on sale' : 'Sell Shift' }
+          </Text>
         </TouchableOpacity>
       </View>
 
