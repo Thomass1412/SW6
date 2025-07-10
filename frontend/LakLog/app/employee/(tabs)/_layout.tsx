@@ -25,9 +25,18 @@ export default function EmployeeTabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="shiftSales"
+        options={{
+          title: "Shift Sales",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="file-tray-outline" size={size+5} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="monthlySchedule"
         options={{
-          title: "Monthly Schedule",
+          title: "Schedule",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size+5} color={color} />
           ),

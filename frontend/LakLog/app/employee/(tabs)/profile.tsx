@@ -71,9 +71,7 @@ export default function EmployeeProfileScreen() {
 
   return (
     <View style={styles.body}>
-      <Text style={styles.option}>Settings</Text>
-      <View style={styles.divider} />
-      <Text style={styles.option}>Notifications</Text>
+      
     </View>
   );
 }
